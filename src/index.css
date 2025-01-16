@@ -1,0 +1,179 @@
+/* index.css */
+body {
+  direction: rtl;
+  text-align: right;
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+
+/* Fix for Cloudscape wizard navigation buttons */
+.awsui_button {
+  min-width: 80px !important;
+  padding: 0 20px !important;
+}
+
+/* Force button text to be visible */
+.awsui_button-text {
+  display: inline-block !important;
+  opacity: 1 !important;
+  white-space: nowrap !important;
+  visibility: visible !important;
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* Ensure wizard navigation text is visible */
+.awsui_wizard-navigation {
+  min-width: 300px !important;
+}
+
+.awsui_wizard-navigation button {
+  min-width: 100px !important;
+}
+
+/* Override button styles */
+.awsui_wizard-navigation button[class*="awsui_button"] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.awsui_wizard-navigation button[class*="awsui_button"] span {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  clip: auto !important;
+  border: 0 !important;
+  display: inline-block !important;
+}
+
+/* Fix for RTL button text */
+[dir="rtl"] .awsui_wizard-navigation button[class*="awsui_button"] span {
+  text-align: center !important;
+}
+
+/* Header styles */
+.app-header {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.app-header button {
+  color: #545b64;
+}
+
+.app-header button:hover {
+  color: #0972d3;
+  background-color: #f2f8fd;
+}
+
+/* Ensure the wizard content doesn't overlap with header */
+.awsui_wizard-navigation {
+  margin-top: 10px !important;
+}
+
+/* Main wizard container */
+.wizard-wrapper {
+  min-height: calc(100vh - 120px);
+  position: relative;
+  padding: 20px;
+}
+
+/* Custom container class */
+.step-container {
+  min-height: calc(100vh - 280px) !important; /* Reduced height */
+  height: calc(100vh - 280px) !important;
+  width: 95% !important;
+  max-width: 1400px !important;
+  margin: 10px auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  position: relative !important;
+}
+
+/* Style the wizard steps container in top right */
+ul[class*="awsui_refresh"] {
+  background-color: white !important;
+  padding: 20px !important;
+  border-radius: 8px !important;
+  border: 1px solid #e9ebed !important;
+  margin: 16px !important;
+  width: 180px !important;
+  float: right !important;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Remove all other wizard step styles */
+
+/* Recording controls container */
+.recording-controls {
+  position: fixed !important;
+  top: 40px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: white !important;
+  border-radius: 32px !important;
+  padding: 8px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  z-index: 1000 !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Circular button styles */
+.control-button {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  margin: 0 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  border: 1px solid #adb5bd !important;
+}
+
+.control-button:hover {
+  background-color: #f2f2f2 !important;
+}
+
+/* Record button specific styles */
+.record-button {
+  border-color: #d91515 !important;
+  color: #d91515 !important;
+}
+
+.record-button:hover {
+  background-color: rgba(217, 21, 21, 0.1) !important;
+}
+
+/* Active recording state */
+.recording {
+  background-color: #d91515 !important;
+  border-color: #d91515 !important;
+  color: white !important;
+  animation: pulse 2s infinite !important;
+}
+
+.recording:hover {
+  background-color: #c41313 !important;
+}
+
+/* Pulse animation for recording state */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(217, 21, 21, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(217, 21, 21, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(217, 21, 21, 0);
+  }
+}

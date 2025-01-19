@@ -1,6 +1,5 @@
 import React from 'react';
 import Box from '@cloudscape-design/components/box';
-import Icon from '@cloudscape-design/components/icon';
 import Button from '@cloudscape-design/components/button';
 
 export default function Header() {

@@ -1,132 +1,88 @@
 import React, { useState } from 'react';
-import { Box, Button, Container } from '@cloudscape-design/components';
-import { jsPDF } from 'jspdf';
-
-// Add Hebrew font
-const addHebrewSupport = async (doc) => {
-  try {
-    const response = await fetch('/fonts/Alef-Regular.ttf');
-    const fontBuffer = await response.arrayBuffer();
-    const fontBase64 = btoa(
-      new Uint8Array(fontBuffer)
-        .reduce((data, byte) => data + String.fromCharCode(byte), '')
-    );
-
-    doc.addFileToVFS('Alef-Regular.ttf', fontBase64);
-    doc.addFont('Alef-Regular.ttf', 'Alef', 'normal');
-    doc.setFont('Alef');
-  } catch (error) {
-    console.error('Error loading font:', error);
-    throw new Error('Failed to load Hebrew font');
-  }
-};
+import { Container, Button, SpaceBetween } from '@cloudscape-design/components';
 
 export default function Step3({ patientID, formData, recordingUrl }) {
-  const [pdfUrl, setPdfUrl] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [documentUrl, setDocumentUrl] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleGeneratePDF = async () => {
+  const handleDocumentRequest = async (fileName) => {
+    setIsLoading(true);
     try {
-      setIsGenerating(true);
+      const response = await fetch(
+        'https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/files?' + 
+        new URLSearchParams({
+          patientId: '1607',
+          fileName: fileName
+        })
+      );
       
-      // Create new document
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-        putOnlyUsedFonts: true
-      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
 
-      // Add Hebrew support
-      await addHebrewSupport(doc);
-
-      // Set RTL mode
-      doc.setR2L(true);
-
-      // Set font size and line height
-      const fontSize = 12;
-      const lineHeight = 10;
-      let yPosition = 20;
-
-      // Add title
-      doc.setFontSize(18);
-      doc.text('סיכום רפואי', 190, yPosition, { align: 'right' });
-      yPosition += lineHeight * 2;
-
-      // Reset font size for content
-      doc.setFontSize(fontSize);
-
-      // Add content
-      const addField = (label, value) => {
-        doc.text(`${label}: ${value || ''}`, 190, yPosition, { align: 'right' });
-        yPosition += lineHeight;
-      };
-
-      addField('מזהה מטופל', patientID);
-      addField('מחלקת טיפול נמרץ', formData.icuWard);
-      addField('אבחנה', formData.diagnosis);
-      addField('הערות', formData.notes);
-
-      // Generate PDF blob
-      const pdfBlob = doc.output('blob');
-      const pdfBlobUrl = URL.createObjectURL(pdfBlob);
-      setPdfUrl(pdfBlobUrl);
-      setIsGenerating(false);
-    } catch (err) {
-      console.error('PDF generation error:', err);
-      alert('שגיאה ביצירת PDF');
-      setIsGenerating(false);
+      const data = await response.json();
+      setDocumentUrl(data.url);
+    } catch (error) {
+      console.error('Error fetching document URL:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <Container
+      header={<h2>סיכום רפואי</h2>}
       className="step-container"
       disableContentPaddings={false}
     >
-      {/* Audio Player Section */}
-      <Box margin={{ bottom: 'l' }}>
-        {recordingUrl && (
-          <audio 
-            controls 
-            src={recordingUrl}
-            style={{
-              width: '100%',
-              marginBottom: '20px',
-              borderRadius: '4px'
-            }}
-          />
-        )}
-      </Box>
-
-      {/* Patient Summary Section */}
-      <Box variant="h3" margin={{ top: 's' }}>
-        סיכום עבור מטופל: {patientID || 'לא הוזן'}
-      </Box>
-      <Box variant="p">מחלקת טיפול נמרץ: {formData.icuWard}</Box>
-      <Box variant="p">אבחנה: {formData.diagnosis}</Box>
-      <Box variant="p">הערות: {formData.notes}</Box>
-
-      <div style={{ marginTop: 20 }}>
-        <Button 
-          variant="primary" 
-          size="large" 
-          onClick={handleGeneratePDF}
-          loading={isGenerating}
-        >
-          צור תצוגה מקדימה
-        </Button>
-      </div>
-
-      {pdfUrl && (
-        <div style={{ marginTop: 20 }}>
-          <iframe
-            src={pdfUrl}
-            title="PDF Preview"
-            style={{ width: '100%', height: '500px' }}
-          />
+      <SpaceBetween direction="vertical" size="l">
+        <div>
+          <h3>פרטי מטופל</h3>
+          <div>
+            <p><strong>מספר מטופל:</strong> {patientID}</p>
+            <p><strong>מחלקה:</strong> {formData.icuWard}</p>
+            <p><strong>אבחנה:</strong> {formData.diagnosis}</p>
+            <p><strong>הערות:</strong> {formData.notes}</p>
+            {recordingUrl && <p><strong>הקלטה:</strong> זמינה</p>}
+          </div>
         </div>
-      )}
+        
+        <SpaceBetween direction="horizontal" size="xs">
+          <Button
+            variant="primary"
+            onClick={() => handleDocumentRequest('1607_סיכום.pdf')}
+            loading={isLoading}
+          >
+            הצג PDF
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => handleDocumentRequest('סיכום_קצר.pdf')}
+            loading={isLoading}
+          >
+            הצג PDF קצר
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => handleDocumentRequest('1607_סיכום.docx')}
+            loading={isLoading}
+          >
+            הצג DOCX
+          </Button>
+        </SpaceBetween>
+
+        {documentUrl && (
+          <div style={{ width: '100%', height: '100vh', border: '1px solid #eee' }}>
+            <iframe
+              src={documentUrl}
+              title="Document Viewer"
+              width="100%"
+              height="100%"
+              style={{ border: 'none' }}
+            />
+          </div>
+        )}
+      </SpaceBetween>
     </Container>
   );
 }

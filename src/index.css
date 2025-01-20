@@ -1,10 +1,165 @@
 /* index.css */
+/* Modern Design System */
+:root {
+  /* Color Palette */
+  --primary-color: #0066cc;
+  --secondary-color: #72c0ff;
+  --background-color: #f5f7f9;
+  --surface-color: #ffffff;
+  --text-primary: #16191f;
+  --text-secondary: #5f6b7a;
+  --text-light: #ffffff;
+  --border-color: #e9ebed;
+  --error-color: #d91515;
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-s: 8px;
+  --spacing-m: 16px;
+  --spacing-l: 24px;
+  --spacing-xl: 32px;
+  
+  /* Shadows */
+  --shadow-small: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.08);
+  --shadow-large: 0 8px 16px rgba(0, 0, 0, 0.12);
+  
+  /* Border Radius */
+  --border-radius-s: 4px;
+  --border-radius-m: 8px;
+  --border-radius-l: 12px;
+  --border-radius-xl: 16px;
+}
+
+/* Base Styles */
 body {
   direction: rtl;
   text-align: right;
   margin: 0;
   padding: 0;
-  font-family: sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-primary);
+}
+
+/* Modern Header */
+.app-header {
+  background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+  box-shadow: var(--shadow-medium);
+  padding: var(--spacing-m) var(--spacing-xl);
+}
+
+.app-header button {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius-m);
+  transition: all 0.2s ease;
+}
+
+.app-header button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Wizard Container */
+.wizard-wrapper {
+  max-width: 1400px;
+  margin: var(--spacing-xl) auto;
+  padding: 0 var(--spacing-xl);
+}
+
+/* Step Container */
+.step-container {
+  background-color: var(--surface-color);
+  border-radius: var(--border-radius-l);
+  box-shadow: var(--shadow-small);
+  padding: var(--spacing-xl);
+  margin-bottom: var(--spacing-l);
+  transition: all 0.3s ease;
+}
+
+.step-container:hover {
+  box-shadow: var(--shadow-medium);
+}
+
+/* Recording Controls */
+.recording-controls {
+  background: var(--surface-color);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-large);
+  padding: var(--spacing-m);
+  backdrop-filter: blur(10px);
+}
+
+.control-button {
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  transition: all 0.2s ease;
+}
+
+.control-button:hover {
+  transform: scale(1.05);
+}
+
+.record-button {
+  color: var(--error-color);
+  border-color: var(--error-color);
+}
+
+/* Form Elements */
+.awsui-input-container {
+  margin-bottom: var(--spacing-m);
+}
+
+.awsui-input {
+  border-radius: var(--border-radius-m);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.awsui-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
+}
+
+/* Buttons */
+.awsui-button {
+  border-radius: var(--border-radius-m);
+  transition: all 0.2s ease;
+}
+
+.awsui-button-primary {
+  background-color: var(--primary-color);
+}
+
+.awsui-button-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-small);
+}
+
+/* Wizard Navigation */
+.awsui_wizard-navigation {
+  background-color: var(--surface-color);
+  border-radius: var(--border-radius-l);
+  padding: var(--spacing-m);
+  box-shadow: var(--shadow-small);
+}
+
+/* Status Indicators */
+.awsui-status-info {
+  border-radius: var(--border-radius-m);
+  padding: var(--spacing-s) var(--spacing-m);
+  background-color: rgba(0, 102, 204, 0.1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.step-container {
+  animation: fadeIn 0.3s ease-out;
 }
 
 /* Fix for Cloudscape wizard navigation buttons */
@@ -58,20 +213,6 @@ body {
   text-align: center !important;
 }
 
-/* Header styles */
-.app-header {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.app-header button {
-  color: #545b64;
-}
-
-.app-header button:hover {
-  color: #0972d3;
-  background-color: #f2f8fd;
-}
-
 /* Ensure the wizard content doesn't overlap with header */
 .awsui_wizard-navigation {
   margin-top: 10px !important;
@@ -82,6 +223,34 @@ body {
   min-height: calc(100vh - 120px);
   position: relative;
   padding: 20px;
+}
+
+.awsui_wizard-navigation button {
+  max-width: 100%; /* Prevent the button from exceeding its container */
+  width: auto; /* Let the button size itself based on its content */
+  padding: 0 16px; /* Standard padding for buttons */
+  box-sizing: border-box; /* Ensure padding is included in the total width */
+}
+
+.awsui_wizard-navigation button.awsui_button-primary {
+  background-color: #0073e6; /* Primary blue color */
+  border-radius: 4px; /* Keep the button looking neat */
+  min-width: 80px; /* Prevent the button from being too small */
+}
+
+.awsui_wizard-navigation {
+  display: flex; /* Ensure the wizard navigation items are flexed */
+  justify-content: space-between; /* Space buttons appropriately */
+  align-items: center; /* Align buttons properly */
+  padding: 8px 16px; /* Add padding to the navigation bar */
+}
+[dir="rtl"] .awsui_wizard-navigation {
+  flex-direction: row-reverse; /* Reverse the button order for RTL */
+}
+
+[dir="rtl"] .awsui_wizard-navigation button {
+  margin-left: 8px; /* Add spacing between buttons */
+  margin-right: 0; /* Remove spacing on the right */
 }
 
 /* Custom container class */
@@ -110,70 +279,42 @@ ul[class*="awsui_refresh"] {
 
 /* Remove all other wizard step styles */
 
-/* Recording controls container */
-.recording-controls {
-  position: fixed !important;
-  top: 40px !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  background: white !important;
-  border-radius: 32px !important;
-  padding: 8px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-  z-index: 1000 !important;
-  display: flex !important;
-  align-items: center !important;
+/* Document viewer styles */
+.step-container.expanded {
+  height: auto !important;
+  min-height: calc(100vh - 100px) !important; /* Made container longer */
 }
 
-/* Circular button styles */
-.control-button {
-  width: 40px !important;
-  height: 40px !important;
-  border-radius: 50% !important;
-  padding: 0 !important;
-  margin: 0 4px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: transparent !important;
-  border: 1px solid #adb5bd !important;
+.patient-info {
+  padding: var(--spacing-m);
+  background-color: var(--surface-color);
+  border-radius: var(--border-radius-m);
+  box-shadow: var(--shadow-small);
+  margin-bottom: var(--spacing-m);
 }
 
-.control-button:hover {
-  background-color: #f2f2f2 !important;
+.document-controls {
+  position: sticky;
+  top: 80px;
+  z-index: 100;
+  background: transparent; /* Made background transparent */
+  padding: var(--spacing-m) 0; /* Removed horizontal padding */
+  margin: 0; /* Removed any margins */
+  box-shadow: none; /* Removed shadow */
 }
 
-/* Record button specific styles */
-.record-button {
-  border-color: #d91515 !important;
-  color: #d91515 !important;
+.document-viewer {
+  height: calc(100vh - 250px); /* Adjusted height to be taller */
+  border-radius: var(--border-radius-m);
+  overflow: hidden;
+  box-shadow: var(--shadow-medium);
+  background-color: var(--surface-color);
+  margin-top: var(--spacing-m); /* Reduced top margin */
 }
 
-.record-button:hover {
-  background-color: rgba(217, 21, 21, 0.1) !important;
-}
-
-/* Active recording state */
-.recording {
-  background-color: #d91515 !important;
-  border-color: #d91515 !important;
-  color: white !important;
-  animation: pulse 2s infinite !important;
-}
-
-.recording:hover {
-  background-color: #c41313 !important;
-}
-
-/* Pulse animation for recording state */
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(217, 21, 21, 0.4);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(217, 21, 21, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(217, 21, 21, 0);
-  }
+/* Ensure the iframe takes up the full space */
+.document-viewer iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
 }

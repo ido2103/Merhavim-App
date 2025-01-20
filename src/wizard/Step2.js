@@ -8,11 +8,11 @@ export default function Step2({ formData, setFormData }) {
 
   return (
     <Container
-      header={<h2>פרטי הדרכה</h2>}
+      header={<h2>פרטי מטופל</h2>}
       className="step-container"
       disableContentPaddings={false}
     >
-      <FormField label="מחלקת טיפול נמרץ">
+      <FormField label="מחלקת טיפול">
         <Input
           value={formData.icuWard}
           onChange={({ detail }) => handleChange('icuWard', detail.value)}
@@ -36,5 +36,5 @@ export default function Step2({ formData, setFormData }) {
         />
       </FormField>
     </Container>
-  );
+  );    
 }

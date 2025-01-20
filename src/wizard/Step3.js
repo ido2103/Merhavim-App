@@ -32,11 +32,11 @@ export default function Step3({ patientID, formData, recordingUrl }) {
   return (
     <Container
       header={<h2>סיכום רפואי</h2>}
-      className="step-container"
+      className={`step-container ${documentUrl ? 'expanded' : ''}`}
       disableContentPaddings={false}
     >
       <SpaceBetween direction="vertical" size="l">
-        <div>
+        <div className="patient-info">
           <h3>פרטי מטופל</h3>
           <div>
             <p><strong>מספר מטופל:</strong> {patientID}</p>
@@ -47,32 +47,40 @@ export default function Step3({ patientID, formData, recordingUrl }) {
           </div>
         </div>
         
-        <SpaceBetween direction="horizontal" size="xs">
-          <Button
-            variant="primary"
-            onClick={() => handleDocumentRequest('1607_סיכום.pdf')}
-            loading={isLoading}
-          >
-            הצג PDF
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => handleDocumentRequest('סיכום_קצר.pdf')}
-            loading={isLoading}
-          >
-            הצג PDF קצר
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => handleDocumentRequest('1607_סיכום.docx')}
-            loading={isLoading}
-          >
-            הצג DOCX
-          </Button>
-        </SpaceBetween>
+        <div className="document-controls">
+          <SpaceBetween direction="horizontal" size="xs">
+            <Button
+              variant="primary"
+              iconName='external'
+              iconAlign='right'
+              onClick={() => handleDocumentRequest('1607_סיכום.pdf')}
+              loading={isLoading}
+            >
+              הצג PDF
+            </Button>
+            <Button
+              variant="primary"
+              iconName='external'
+              iconAlign='right'
+              onClick={() => handleDocumentRequest('סיכום_קצר.pdf')}
+              loading={isLoading}
+            >
+              הצג PDF קצר
+            </Button>
+            <Button
+              variant="primary"
+              iconName='external'
+              iconAlign='right'
+              onClick={() => handleDocumentRequest('1607_סיכום.docx')}
+              loading={isLoading}
+            >
+              הורד DOCX
+            </Button>
+          </SpaceBetween>
+        </div>
 
         {documentUrl && (
-          <div style={{ width: '100%', height: '100vh', border: '1px solid #eee' }}>
+          <div className="document-viewer">
             <iframe
               src={documentUrl}
               title="Document Viewer"

@@ -3,17 +3,23 @@ import { FormField, Input, Container, SpaceBetween } from '@cloudscape-design/co
 
 export default function Step1({ patientID, setPatientID, onValidationChange }) {
   const [error, setError] = useState('');
-  
+
   const handleChange = ({ detail }) => {
     const value = detail.value;
     setPatientID(value);
     setError('');
-    
-    if (!value) {
+
+    // Convert the value to a number for validation
+    const parsedValue = Number(value);
+
+    // Validate: Check if it's a number and not NaN
+    if (!value || isNaN(parsedValue)) {
+      setError('יש להזין מספר מזהה תקין'); // Error message in Hebrew: "Please enter a valid ID number"
       onValidationChange(false);
       return;
     }
 
+    // If valid, clear error and mark as valid
     onValidationChange(true);
   };
 

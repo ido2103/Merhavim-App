@@ -8,7 +8,7 @@ import RecordingControls from '../components/RecordingControls';
 
 export default function WizardContainer() {
   const [patientID, setPatientID] = useState('');
-  const [formData, setFormData] = useState({ icuWard: '', diagnosis: '', notes: '' });
+  const [formData, setFormData] = useState({Ward: '', diagnosis: '', notes: '' });
   const [recordingUrl, setRecordingUrl] = useState('');
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [isStep1Valid, setIsStep1Valid] = useState(false);
@@ -28,7 +28,8 @@ export default function WizardContainer() {
 
   const steps = [
     { 
-      title: 'רקע',
+      title: 'הכנס מספר פציינט',
+      description: '.הכנס מספר פציינט תקין ולחצו על הבא',
       content: (
         <Step1 
           patientID={patientID} 
@@ -41,7 +42,7 @@ export default function WizardContainer() {
     { 
       title: 'הדרכה',
       content: <Step2 formData={formData} setFormData={setFormData} />,
-      isOptional: false,
+      isOptional: true,
     },
     { 
       title: 'סיכום רפואי',
@@ -76,7 +77,8 @@ export default function WizardContainer() {
         }}
         onSubmit={() => alert('האשף הסתיים!')}
         onCancel={() => alert('האשף בוטל')}
-        isNavigationDisabled={activeStepIndex === 0 && !isStep1Valid}
+        isLoadingNextStep={activeStepIndex === 0 && !isStep1Valid}
+        nextButtonDisabled={activeStepIndex === 0 && !isStep1Valid}
       />
     </div>
   );

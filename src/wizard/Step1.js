@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
 import { FormField, Input, Container, SpaceBetween } from '@cloudscape-design/components';
 
+// Import the configuration file
+import allowedNumbersConfig from '../settings.json';
+
 export default function Step1({ patientID, setPatientID, onValidationChange }) {
   const [error, setError] = useState('');
 
   const handleChange = ({ detail }) => {
-    const value = detail.value;
+    const value = detail.value.trim(); // Trim spaces
     setPatientID(value);
     setError('');
 
     // Convert the value to a number for validation
     const parsedValue = Number(value);
 
-    // Validate: Check if it's a number and not NaN
-    if (!value || isNaN(parsedValue)) {
-      setError('יש להזין מספר מזהה תקין'); // Error message in Hebrew: "Please enter a valid ID number"
+    // Validate: Check if it's a number and in the allowed list
+    if (!value || isNaN(parsedValue) || !allowedNumbersConfig.allowedNumbers.includes(parsedValue)) {
+      setError('מספר מזהה אינו חוקי'); // Error message in Hebrew: "Invalid ID number"
       onValidationChange(false);
       return;
     }

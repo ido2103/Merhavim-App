@@ -12,7 +12,7 @@ export default function Step3({ patientID, formData, recordingUrl }) {
       const apiUrl = 
         'https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/files?' + 
         new URLSearchParams({
-          patientId: '1607',
+          patientId: patientID,
           fileName: fileName
         }).toString();
 

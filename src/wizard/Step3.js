@@ -5,9 +5,12 @@ export default function Step3({ patientID, formData, recordingUrl }) {
   const [documentUrl, setDocumentUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleDocumentRequest = async (fileName) => {
+  const handleDocumentRequest = async (fileNameTemplate) => {
     setIsLoading(true);
     try {
+      // Replace any instances of the hardcoded ID with the actual patientID
+      const fileName = fileNameTemplate.replace('1607', patientID);
+      
       // Build the API URL with query parameters
       const apiUrl = 
         'https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/files?' + 
@@ -63,7 +66,7 @@ export default function Step3({ patientID, formData, recordingUrl }) {
               variant="primary"
               iconName='external'
               iconAlign='right'
-              onClick={() => handleDocumentRequest('1607_סיכום.pdf')}
+              onClick={() => handleDocumentRequest(`${patientID}_סיכום.pdf`)}
               loading={isLoading}
             >
               הצג PDF
@@ -81,7 +84,7 @@ export default function Step3({ patientID, formData, recordingUrl }) {
               variant="primary"
               iconName='external'
               iconAlign='right'
-              onClick={() => handleDocumentRequest('1607_סיכום.docx')}
+              onClick={() => handleDocumentRequest(`${patientID}_סיכום.docx`)}
               loading={isLoading}
             >
               הורד DOCX

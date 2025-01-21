@@ -8,19 +8,28 @@ export default function Step3({ patientID, formData, recordingUrl }) {
   const handleDocumentRequest = async (fileName) => {
     setIsLoading(true);
     try {
-      const response = await fetch(
+      // Build the API URL with query parameters
+      const apiUrl = 
         'https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/files?' + 
         new URLSearchParams({
           patientId: '1607',
           fileName: fileName
-        })
-      );
-      
+        }).toString();
+
+      // Make the API request with the x-api-key header
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'x-api-key': process.env.REACT_APP_API_KEY || '' // Use empty string as fallback
+        }
+      });
+
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        throw new Error(`Network response was not ok. Status: ${response.status}`);
       }
 
       const data = await response.json();
+      //console.log(process.env.REACT_APP_API_KEY)
       setDocumentUrl(data.url);
     } catch (error) {
       console.error('Error fetching document URL:', error);
@@ -28,6 +37,7 @@ export default function Step3({ patientID, formData, recordingUrl }) {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <Container

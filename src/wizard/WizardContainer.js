@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import Wizard from '@cloudscape-design/components/wizard';
 import Step1 from './Step1';
-import Step2 from './Step2';
 import Step3 from './Step3';
 import RecordingControls from '../components/RecordingControls';
 
@@ -40,18 +39,16 @@ export default function WizardContainer() {
       isOptional: false,
     },
     { 
-      title: 'הדרכה',
-      content: <Step2 formData={formData} setFormData={setFormData} />,
-      isOptional: true,
-    },
-    { 
       title: 'סיכום רפואי',
       content: (
-        <Step3 
-          patientID={patientID} 
-          formData={formData} 
-          recordingUrl={recordingUrl}
-        />
+        <>
+          <RecordingControls onRecordingComplete={handleRecordingComplete} />
+          <Step3 
+            patientID={patientID} 
+            formData={formData} 
+            recordingUrl={recordingUrl}
+          />
+        </>
       ),
       isOptional: false,
     },
@@ -59,9 +56,6 @@ export default function WizardContainer() {
 
   return (
     <div className="wizard-wrapper">
-      {activeStepIndex >= 1 && (
-        <RecordingControls onRecordingComplete={handleRecordingComplete} />
-      )}
       <Wizard
         steps={steps}
         activeStepIndex={activeStepIndex}

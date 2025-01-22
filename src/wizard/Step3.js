@@ -66,7 +66,7 @@ export default function Step3({ patientID, formData, recordingUrl }) {
               variant="primary"
               iconName='external'
               iconAlign='right'
-              onClick={() => handleDocumentRequest(`${patientID}_סיכום.pdf`)}
+              onClick={() => handleDocumentRequest(`summary_${patientID}.pdf`)}
               loading={isLoading}
             >
               הצג PDF
@@ -75,7 +75,7 @@ export default function Step3({ patientID, formData, recordingUrl }) {
               variant="primary"
               iconName='external'
               iconAlign='right'
-              onClick={() => handleDocumentRequest('סיכום_קצר.pdf')}
+              onClick={() => handleDocumentRequest('short_summary.pdf')}
               loading={isLoading}
             >
               הצג PDF קצר
@@ -84,7 +84,7 @@ export default function Step3({ patientID, formData, recordingUrl }) {
               variant="primary"
               iconName='external'
               iconAlign='right'
-              onClick={() => handleDocumentRequest(`${patientID}_סיכום.docx`)}
+              onClick={() => handleDocumentRequest(`summary_${patientID}.docx`)}
               loading={isLoading}
             >
               הורד DOCX

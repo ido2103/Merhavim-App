@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Container, Button, SpaceBetween } from '@cloudscape-design/components';
+import { Container, Button, SpaceBetween, Checkbox } from '@cloudscape-design/components';
 
 export default function Step3({ patientID, formData, recordingUrl }) {
   const [documentUrl, setDocumentUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const handleDocumentRequest = async (fileNameTemplate) => {
     setIsLoading(true);
@@ -53,11 +54,18 @@ export default function Step3({ patientID, formData, recordingUrl }) {
           <h3>פרטי מטופל</h3>
           <div>
             <p><strong>מספר מטופל:</strong> {patientID}</p>
-            <p><strong>מחלקה:</strong> {formData.icuWard}</p>
-            <p><strong>אבחנה:</strong> {formData.diagnosis}</p>
-            <p><strong>הערות:</strong> {formData.notes}</p>
             {recordingUrl && <p><strong>הקלטה:</strong> זמינה</p>}
           </div>
+        </div>
+        
+        <div className="terms-agreement">
+          <Checkbox
+            checked={termsAccepted}
+            onChange={({ detail }) => setTermsAccepted(detail.checked)}
+            controlId="terms"
+          >
+            אני מסכים לתנאי השימוש
+          </Checkbox>
         </div>
         
         <div className="document-controls">
@@ -68,6 +76,7 @@ export default function Step3({ patientID, formData, recordingUrl }) {
               iconAlign='right'
               onClick={() => handleDocumentRequest(`summary_${patientID}.pdf`)}
               loading={isLoading}
+              disabled={!termsAccepted}
             >
               הצג PDF
             </Button>
@@ -77,6 +86,7 @@ export default function Step3({ patientID, formData, recordingUrl }) {
               iconAlign='right'
               onClick={() => handleDocumentRequest('short_summary.pdf')}
               loading={isLoading}
+              disabled={!termsAccepted}
             >
               הצג PDF קצר
             </Button>
@@ -86,6 +96,7 @@ export default function Step3({ patientID, formData, recordingUrl }) {
               iconAlign='right'
               onClick={() => handleDocumentRequest(`medical_summary_${patientID}.pdf`)}
               loading={isLoading}
+              disabled={!termsAccepted}
             >
               הצג PDF רפואי
             </Button>
@@ -95,8 +106,9 @@ export default function Step3({ patientID, formData, recordingUrl }) {
               iconAlign='right'
               onClick={() => handleDocumentRequest(`summary_${patientID}.docx`)}
               loading={isLoading}
+              disabled={!termsAccepted}
             >
-              הורד DOCX
+              הורד וורד
             </Button>
           </SpaceBetween>
         </div>

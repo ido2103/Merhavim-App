@@ -9,7 +9,7 @@ export default function Header() {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        background: 'linear-gradient(135deg, #72c0ff, #0066cc)',
+        background: '#ffffff',
         padding: '16px 32px',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.08)',
         position: 'sticky',
@@ -18,6 +18,7 @@ export default function Header() {
         direction: 'ltr',
         width: '100%',
         boxSizing: 'border-box',
+        
       }}
     >
       {/* Left: Logo */}
@@ -44,8 +45,8 @@ export default function Header() {
           style={{
             fontWeight: '600',
             fontSize: '24px',
-            color: '#ffffff',
-            textShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            color: '#16191f',
+            textShadow: 'none',
           }}
         >
           מרכז רפואי מרחבים
@@ -55,34 +56,53 @@ export default function Header() {
       {/* Right: Doctor Name and Buttons */}
       <div
         style={{
-          width: '200px',
+          width: 'auto',
           display: 'flex',
           justifyContent: 'flex-end',
           alignItems: 'center',
-          gap: '16px',
+          gap: '8px',
         }}
       >
+        {['external', 'notification', 'settings'].map((iconName, index) => (
+          <React.Fragment key={iconName}>
+            {index > 0 && (
+              <div
+                style={{
+                  height: '24px',
+                  width: '1px',
+                  backgroundColor: '#e9ebed',
+                  margin: '0 4px',
+                }}
+              />
+            )}
+            <Button
+              variant="icon"
+              iconName={iconName}
+              style={{
+                backgroundColor: 'transparent',
+                borderRadius: '4px',
+                transition: 'all 0.2s ease',
+                padding: '4px',
+              }}
+            />
+          </React.Fragment>
+        ))}
+        <div
+          style={{
+            height: '24px',
+            width: '1px',
+            backgroundColor: '#e9ebed',
+            margin: '0 4px',
+          }}
+        />
         <span
           style={{
             fontWeight: '500',
-            color: '#ffffff',
-            marginLeft: '20px',
+            color: '#16191f',
           }}
         >
           ד״ר גדי כהן רפפורט
         </span>
-        {['notification', 'settings', 'external', 'user-profile'].map((iconName) => (
-          <Button
-            key={iconName}
-            variant="icon"
-            iconName={iconName}
-            style={{
-              backgroundColor: 'rgba(255,255,255,0.1)',
-              borderRadius: '8px',
-              transition: 'all 0.2s ease',
-            }}
-          />
-        ))}
       </div>
     </div>
   );

@@ -84,6 +84,15 @@ export default function Step3({ patientID, formData, recordingUrl }) {
               variant="primary"
               iconName='external'
               iconAlign='right'
+              onClick={() => handleDocumentRequest(`medical_summary_${patientID}.pdf`)}
+              loading={isLoading}
+            >
+              הצג PDF רפואי
+            </Button>
+            <Button
+              variant="primary"
+              iconName='external'
+              iconAlign='right'
               onClick={() => handleDocumentRequest(`summary_${patientID}.docx`)}
               loading={isLoading}
             >

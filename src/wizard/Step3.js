@@ -78,7 +78,7 @@ export default function Step3({ patientID, formData, recordingUrl }) {
               loading={isLoading}
               disabled={!termsAccepted}
             >
-              הצג PDF
+              סיכום ארוך (Bullets)
             </Button>
             <Button
               variant="primary"
@@ -88,7 +88,7 @@ export default function Step3({ patientID, formData, recordingUrl }) {
               loading={isLoading}
               disabled={!termsAccepted}
             >
-              הצג PDF קצר
+              סיכום קצר (Bullets)
             </Button>
             <Button
               variant="primary"
@@ -98,7 +98,7 @@ export default function Step3({ patientID, formData, recordingUrl }) {
               loading={isLoading}
               disabled={!termsAccepted}
             >
-              הצג PDF רפואי
+               סיכום קצר
             </Button>
             <Button
               variant="primary"
@@ -108,7 +108,7 @@ export default function Step3({ patientID, formData, recordingUrl }) {
               loading={isLoading}
               disabled={!termsAccepted}
             >
-              הורד וורד
+              סיכום ארוך (Word)
             </Button>
           </SpaceBetween>
         </div>

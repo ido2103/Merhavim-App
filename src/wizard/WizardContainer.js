@@ -3,18 +3,12 @@ import React, { useState } from 'react';
 import Wizard from '@cloudscape-design/components/wizard';
 import Step1 from './Step1';
 import Step3 from './Step3';
-import RecordingControls from '../components/RecordingControls';
 
 export default function WizardContainer() {
   const [patientID, setPatientID] = useState('');
   const [formData, setFormData] = useState({Ward: '', diagnosis: '', notes: '' });
-  const [recordingUrl, setRecordingUrl] = useState('');
   const [activeStepIndex, setActiveStepIndex] = useState(0);
   const [isStep1Valid, setIsStep1Valid] = useState(false);
-
-  const handleRecordingComplete = (url) => {
-    setRecordingUrl(url);
-  };
 
   const handleStepChange = ({ detail }) => {
     if (detail.requestedStepIndex > activeStepIndex) {
@@ -41,14 +35,10 @@ export default function WizardContainer() {
     { 
       title: 'סיכום רפואי',
       content: (
-        <>
-          <RecordingControls onRecordingComplete={handleRecordingComplete} />
-          <Step3 
-            patientID={patientID} 
-            formData={formData} 
-            recordingUrl={recordingUrl}
-          />
-        </>
+        <Step3 
+          patientID={patientID} 
+          formData={formData}
+        />
       ),
       isOptional: false,
     },

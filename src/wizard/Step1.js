@@ -1,29 +1,49 @@
 import React, { useState } from 'react';
-import { FormField, Input, Container, SpaceBetween } from '@cloudscape-design/components';
+import { FormField, Input, Container, SpaceBetween, Button } from '@cloudscape-design/components';
 
 // Import the configuration file
 import allowedNumbersConfig from '../settings.json';
 
 export default function Step1({ patientID, setPatientID, onValidationChange }) {
   const [error, setError] = useState('');
+  const [isExistingPatient, setIsExistingPatient] = useState(false);
+  const [showButton, setShowButton] = useState(false);
 
   const handleChange = ({ detail }) => {
     const value = detail.value.trim(); // Trim spaces
     setPatientID(value);
     setError('');
+    setShowButton(false);
 
     // Convert the value to a number for validation
     const parsedValue = Number(value);
 
-    // Validate: Check if it's a number and in the allowed list
-    if (!value || isNaN(parsedValue) || !allowedNumbersConfig.allowedNumbers.includes(parsedValue)) {
+    // First check if it's a valid number
+    if (!value || isNaN(parsedValue)) {
       setError('מספר מזהה אינו חוקי'); // Error message in Hebrew: "Invalid ID number"
       onValidationChange(false);
       return;
     }
 
-    // If valid, clear error and mark as valid
+    // Check if number exists in allowed list
+    const exists = allowedNumbersConfig.allowedNumbers.includes(parsedValue);
+    setIsExistingPatient(exists);
+    setShowButton(true);
+    
+    // Update validation state
+    if (!exists) {
+      setError('מספר מזהה אינו קיים במערכת'); // "ID number not found in system"
+      onValidationChange(false);
+      return;
+    }
+
+    // If valid and exists, clear error and mark as valid
     onValidationChange(true);
+  };
+
+  const handleButtonClick = () => {
+    // This will be implemented later
+    console.log(isExistingPatient ? 'Adding documents' : 'Adding new patient');
   };
 
   return (
@@ -44,6 +64,15 @@ export default function Step1({ patientID, setPatientID, onValidationChange }) {
             placeholder="מזהה מטופל"
           />
         </FormField>
+        
+        {showButton && (
+          <Button
+            variant="primary"
+            onClick={handleButtonClick}
+          >
+            {isExistingPatient ? 'הוספת מסמכים (רשות)' : 'יצירת מטופל חדש'}
+          </Button>
+        )}
       </SpaceBetween>
     </Container>
   );

@@ -33,7 +33,6 @@ export default function Step3({ patientID, formData, recordingUrl }) {
       }
 
       const data = await response.json();
-      //console.log(process.env.REACT_APP_API_KEY)
       setDocumentUrl(data.url);
     } catch (error) {
       console.error('Error fetching document URL:', error);
@@ -70,31 +69,46 @@ export default function Step3({ patientID, formData, recordingUrl }) {
         
         <div className="document-controls">
           <SpaceBetween direction="horizontal" size="xs">
+          {/* 
+          <Button
+            variant="primary"
+            iconName='external'
+            iconAlign='right'
+            onClick={() => handleDocumentRequest(`summary_${patientID}.pdf`)}
+            loading={isLoading}
+            disabled={!termsAccepted}
+          >
+            סיכום ארוך (Bullets).
+          </Button>
+
+          <Button
+            variant="primary"
+            iconName='external'
+            iconAlign='right'
+            onClick={() => handleDocumentRequest('short_summary.pdf')}
+            loading={isLoading}
+            disabled={!termsAccepted}
+          >
+            סיכום קצר (Bullets)
+          </Button>
+
+          <Button
+            variant="primary"
+            iconName='external'
+            iconAlign='right'
+            onClick={() => handleDocumentRequest(`medical_summary_${patientID}.pdf`)}
+            loading={isLoading}
+            disabled={!termsAccepted}
+          >
+            סיכום קצר
+          </Button>
+          */}
+
             <Button
               variant="primary"
               iconName='external'
               iconAlign='right'
-              onClick={() => handleDocumentRequest(`summary_${patientID}.pdf`)}
-              loading={isLoading}
-              disabled={!termsAccepted}
-            >
-              סיכום ארוך (Bullets)
-            </Button>
-            <Button
-              variant="primary"
-              iconName='external'
-              iconAlign='right'
-              onClick={() => handleDocumentRequest('short_summary.pdf')}
-              loading={isLoading}
-              disabled={!termsAccepted}
-            >
-              סיכום קצר (Bullets)
-            </Button>
-            <Button
-              variant="primary"
-              iconName='external'
-              iconAlign='right'
-              onClick={() => handleDocumentRequest(`medical_summary_${patientID}.pdf`)}
+              onClick={() => handleDocumentRequest(`short_summary.pdf`)}
               loading={isLoading}
               disabled={!termsAccepted}
             >
@@ -104,11 +118,11 @@ export default function Step3({ patientID, formData, recordingUrl }) {
               variant="primary"
               iconName='external'
               iconAlign='right'
-              onClick={() => handleDocumentRequest(`summary_${patientID}.docx`)}
+              onClick={() => handleDocumentRequest(`short_summary.docx`)}
               loading={isLoading}
               disabled={!termsAccepted}
             >
-              סיכום ארוך (Word)
+              סיכום קצר (Word)
             </Button>
           </SpaceBetween>
         </div>

@@ -257,7 +257,7 @@ ul[class*="awsui_refresh"] {
 /* Document viewer styles */
 .step-container.expanded {
   height: auto !important;
-  min-height: calc(100vh - 100px) !important; /* Made container longer */
+  min-height: calc(100vh - 100px) !important;
 }
 
 .patient-info {
@@ -297,4 +297,38 @@ ul[class*="awsui_refresh"] {
 /* Style the progress bar */
 .awsui-progress-bar {
   cursor: pointer;
+}
+
+/* Add this to your existing CSS */
+[data-success-text] {
+  color: #037f0c !important; /* Green color for success messages */
+}
+
+/* Add these styles for success message */
+.awsui-form-field [class*="awsui-form-field-success"] {
+  color: #037f0c !important;
+  display: block !important;
+  margin-top: 4px !important;
+}
+
+.awsui-form-field-success {
+  color: #037f0c !important;
+}
+
+/* Style the AI response textarea */
+.ai-response-textarea {
+  width: 100% !important;
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+}
+
+/* Make the textarea container take full width */
+.ai-response-field {
+  width: 100% !important;
+}
+
+/* Make the textarea itself take full width */
+.ai-response-field [class*="awsui_input"] {
+  width: 100% !important;
+  max-width: none !important;
 }

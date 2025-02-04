@@ -1,40 +1,20 @@
 import React from 'react';
-import { FormField, Input, Textarea, Container } from '@cloudscape-design/components';
+import { Container, SpaceBetween } from '@cloudscape-design/components';
+import RecordingControls from '../components/RecordingControls';
 
-export default function Step2({ formData, setFormData }) {
-  const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
+export default function Step2({ recordingUrl, setRecordingUrl, patientID }) {
   return (
-    <Container
-      header={<h2>פרטי מטופל</h2>}
-      className="step-container"
+    <Container 
+      header={<h2>הקלטת שיחה</h2>}
+      className="step-container expanded"
       disableContentPaddings={false}
     >
-      <FormField label="מחלקת טיפול">
-        <Input
-          value={formData.icuWard}
-          onChange={({ detail }) => handleChange('icuWard', detail.value)}
-          placeholder="לדוגמה, טיפול נמרץ..."
+      <SpaceBetween direction="vertical" size="l">
+        <RecordingControls 
+          onRecordingComplete={setRecordingUrl} 
+          patientID={patientID}
         />
-      </FormField>
-
-      <FormField label="אבחנה">
-        <Input
-          value={formData.diagnosis}
-          onChange={({ detail }) => handleChange('diagnosis', detail.value)}
-          placeholder="הקלד/י אבחנה"
-        />
-      </FormField>
-
-      <FormField label="הערות">
-        <Textarea
-          value={formData.notes}
-          onChange={({ detail }) => handleChange('notes', detail.value)}
-          placeholder="הקלד/י הערות נוספות..."
-        />
-      </FormField>
+      </SpaceBetween>
     </Container>
-  );    
+  );
 }

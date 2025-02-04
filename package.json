@@ -6,19 +6,24 @@
     "@cloudscape-design/components": "^3.0.869",
     "@cloudscape-design/global-styles": "^1.0.34",
     "@fontsource/noto-sans-hebrew": "^5.1.1",
+    "concurrently": "^9.1.2",
+    "cors": "^2.8.5",
     "cra-template": "1.2.0",
     "docx-preview": "^0.3.4",
+    "express": "^4.21.2",
     "jspdf": "^2.5.2",
+    "pdfjs-dist": "^3.11.174",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-scripts": "5.0.1",
     "web-vitals": "^4.2.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "concurrently \"react-scripts start\" \"node server/settingsServer.js\"",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "settings-server": "node server/settingsServer.js"
   },
   "eslintConfig": {
     "extends": [

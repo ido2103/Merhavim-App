@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Container, Button, SpaceBetween, Checkbox } from '@cloudscape-design/components';
 
-export default function Step3({ patientID, formData, recordingUrl }) {
+export default function Step3({ patientID, formData, recordingUrl, setRecordingUrl }) {
   const [documentUrl, setDocumentUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -14,7 +14,7 @@ export default function Step3({ patientID, formData, recordingUrl }) {
       
       // Build the API URL with query parameters
       const apiUrl = 
-        'https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/files?' + 
+        `https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/files?` + 
         new URLSearchParams({
           patientId: patientID,
           fileName: fileName
@@ -108,7 +108,7 @@ export default function Step3({ patientID, formData, recordingUrl }) {
               variant="primary"
               iconName='external'
               iconAlign='right'
-              onClick={() => handleDocumentRequest(`short_summary.pdf`)}
+              onClick={() => handleDocumentRequest(`output/Summary/short_summary.pdf`)}
               loading={isLoading}
               disabled={!termsAccepted}
             >
@@ -118,7 +118,7 @@ export default function Step3({ patientID, formData, recordingUrl }) {
               variant="primary"
               iconName='external'
               iconAlign='right'
-              onClick={() => handleDocumentRequest(`short_summary.docx`)}
+              onClick={() => handleDocumentRequest(`output/Summary/short_summary.docx`)}
               loading={isLoading}
               disabled={!termsAccepted}
             >

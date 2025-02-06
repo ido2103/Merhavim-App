@@ -6,14 +6,18 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.j
 /**
  * Converts each page of a PDF file to a base64-encoded JPEG image.
  * @param {File|Blob} file - The PDF file to convert.
- * @returns {Promise<string[]>} A promise that resolves with an array of base64 image data.
+ * @param {boolean} countOnly - Whether to return only the page count.
+ * @returns {Promise<string[]|number>} A promise that resolves with an array of base64 image data or the page count.
  */
-export async function convertPdfToImages(file) {
+export async function convertPdfToImages(file, countOnly = false) {
   try {
-    // Read file as an ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
-    // Load the PDF document
     const pdf = await pdfjsLib.getDocument(new Uint8Array(arrayBuffer)).promise;
+    
+    if (countOnly) {
+      return pdf.numPages;
+    }
+
     const totalPages = pdf.numPages;
     const images = [];
 

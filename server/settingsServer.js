@@ -1,5 +1,5 @@
 const express = require('express');
-const fs = require('fs');
+const fs = require('fs').promises;
 const path = require('path');
 const cors = require('cors');
 const app = express();
@@ -9,14 +9,15 @@ app.use(express.json());
 
 const SETTINGS_FILE_PATH = path.join(__dirname, '../src/settings.json');
 
-app.post('/update-settings', (req, res) => {
+app.post('/update-settings', async (req, res) => {
   try {
     const { newId } = req.body;
-    const settings = JSON.parse(fs.readFileSync(SETTINGS_FILE_PATH, 'utf8'));
+    const settingsData = await fs.readFile(SETTINGS_FILE_PATH, 'utf8');
+    const settings = JSON.parse(settingsData);
     
     if (!settings.allowedNumbers.includes(Number(newId))) {
       settings.allowedNumbers.push(Number(newId));
-      fs.writeFileSync(SETTINGS_FILE_PATH, JSON.stringify(settings, null, 2));
+      await fs.writeFile(SETTINGS_FILE_PATH, JSON.stringify(settings, null, 2));
       console.log(`Added ID ${newId} to settings.json`);
     }
     
@@ -24,6 +25,25 @@ app.post('/update-settings', (req, res) => {
   } catch (error) {
     console.error('Error updating settings:', error);
     res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/delete-patient', async (req, res) => {
+  try {
+    const { patientId } = req.body;
+    
+    const settingsData = await fs.readFile(SETTINGS_FILE_PATH, 'utf8');
+    const settings = JSON.parse(settingsData);
+    
+    settings.allowedNumbers = settings.allowedNumbers.filter(id => id !== patientId);
+    
+    await fs.writeFile(SETTINGS_FILE_PATH, JSON.stringify(settings, null, 2));
+    
+    console.log(`Removed patient ID ${patientId} from settings`);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error in delete-patient:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 

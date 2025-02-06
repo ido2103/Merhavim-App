@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import Wizard from '@cloudscape-design/components/wizard';
 import Step1 from './Step1';
-import Step2 from './Step2';
 import Step3 from './Step3';
 import settings from '../settings.json';
 
@@ -14,10 +13,27 @@ export default function WizardContainer() {
   const [allowedNumbers, setAllowedNumbers] = useState(settings.allowedNumbers);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingUrl, setRecordingUrl] = useState(null);
+  const [existingTranscript, setExistingTranscript] = useState('');
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const [transcript, setTranscript] = useState('');
 
   const handleStepChange = ({ detail }) => {
     if (detail.requestedStepIndex > activeStepIndex) {
       if (activeStepIndex === 0 && !isStep1Valid) {
+        return;
+      }
+    } else if (detail.requestedStepIndex === 0) {
+      // When going back to Step1, force a check of existing files
+      if (patientID) {
+        // Force component remount and check files
+        setActiveStepIndex(detail.requestedStepIndex);
+        setTimeout(() => {
+          const currentId = patientID;
+          setPatientID('');
+          setTimeout(() => {
+            setPatientID(currentId);
+          }, 50);
+        }, 0);
         return;
       }
     }
@@ -28,53 +44,49 @@ export default function WizardContainer() {
     setAllowedNumbers(prev => [...prev, newId]);
   };
 
+  const handleExistingMedia = (url, transcript, pdfUrl) => {
+    console.log('WizardContainer - handleExistingMedia:', { url, transcript });
+    setRecordingUrl(url);
+    setExistingTranscript(transcript);
+    setPdfUrl(pdfUrl);
+  };
+
+  const handleRecordingComplete = (url) => {
+    setRecordingUrl(url);
+    // If we have a new recording, we should also have a transcript
+    if (url) {
+      setExistingTranscript(''); // Clear initially
+    }
+  };
+
   const steps = [
-    { 
-      title: 'הכנס מספר פציינט',
-      description: '.הכנס מספר פציינט תקין ולחצו על הבא',
+    {
+      title: 'פרטי מטופל',
       content: (
-        <Step1 
-          patientID={patientID} 
-          setPatientID={setPatientID} 
+        <Step1
+          patientID={patientID}
+          setPatientID={setPatientID}
           onValidationChange={setIsStep1Valid}
           allowedNumbers={allowedNumbers}
           onAddNewPatient={addAllowedNumber}
+          onExistingMedia={handleExistingMedia}
+          activeStepIndex={activeStepIndex}
+          onRecordingComplete={handleRecordingComplete}
         />
-      ),
-      isOptional: false,
+      )
     },
-    { 
-      title: 'הקלטה ותמלול',
-      description: 'הקלט ותמלל שיחות בזמן אמת.',
+    {
+      title: 'סיכום',
       content: (
-        <Step2 
+        <Step3
           patientID={patientID}
-          systemInstructions={settings.system_instructions}
-          defaultPrompt={settings.prompt}
-          maxTokens={settings.max_tokens}
-          isRecording={isRecording}
-          setIsRecording={setIsRecording}
-          recordingUrl={recordingUrl}
-          setRecordingUrl={setRecordingUrl}
+          transcript={existingTranscript}
+          pdfUrl={pdfUrl}
         />
-      ),
-      isOptional: false,
-    },
-    { 
-      title: 'סיכום רפואי',
-      content: (
-        <Step3 
-          patientID={patientID} 
-          formData={formData}
-          isRecording={isRecording}
-          setIsRecording={setIsRecording}
-          recordingUrl={recordingUrl}
-          setRecordingUrl={setRecordingUrl}
-        />
-      ),
-      isOptional: false,
-    },
+      )
+    }
   ];
+
 
   return (
     <div className="wizard-wrapper">

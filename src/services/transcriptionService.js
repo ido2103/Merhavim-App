@@ -65,17 +65,17 @@ export async function uploadRecording(file, patientID) {
   }
 }
 
-export async function startTranscription(patientID) {
+export async function startTranscription(patientID, fileName) {
   try {
-    const response = await fetch(API_URL, {
+    const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/transcribe', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': API_KEY
+        'x-api-key': process.env.REACT_APP_API_KEY || ''
       },
       body: JSON.stringify({
         patientID,
-        uploaded: true
+        fileName
       })
     });
 
@@ -85,10 +85,7 @@ export async function startTranscription(patientID) {
     }
 
     const data = await response.json();
-    console.log('Transcription response:', data);
-    
-    // Return just the transcript text, not the whole object
-    return data.transcript || ''; // Return empty string if no transcript
+    return data.transcript || '';
   } catch (error) {
     console.error('Error starting transcription:', error);
     throw error;

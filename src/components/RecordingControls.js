@@ -4,7 +4,8 @@ import {
   Button, 
   SpaceBetween, 
   Box, 
-  StatusIndicator
+  StatusIndicator,
+  Modal
 } from '@cloudscape-design/components';
 import recordingPlaceholder from './recording-placeholder.png';
 import { uploadRecording, startTranscription } from '../services/transcriptionService';
@@ -21,10 +22,18 @@ const StopIcon = () => (
   </svg>
 );
 
-export default function RecordingControls({ onRecordingComplete, patientID }) {
+export default function RecordingControls({ 
+  onRecordingComplete, 
+  patientID, 
+  initialRecordingUrl,
+  onRecordingDelete,
+  onUploadComplete
+}) {
+
+
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [mediaUrl, setMediaUrl] = useState(null);
+  const [mediaUrl, setMediaUrl] = useState(initialRecordingUrl || null);
   const [duration, setDuration] = useState(0);
   const [isVideo, setIsVideo] = useState(false);
   const [usedFormat, setUsedFormat] = useState(''); // 'mp4' or 'mp3'
@@ -38,17 +47,50 @@ export default function RecordingControls({ onRecordingComplete, patientID }) {
   const chunks = useRef([]);
 
   const [isTranscribing, setIsTranscribing] = useState(false);
-  const [transcript, setTranscript] = useState('');
   const [error, setError] = useState('');
+
+  const [showOverwriteModal, setShowOverwriteModal] = useState(false);
+  const [isLoadingExisting, setIsLoadingExisting] = useState(false);
+  const [existingRecordingUrl, setExistingRecordingUrl] = useState(null);
+  const [existingTranscript, setExistingTranscript] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const [recordingExistsOnServer, setRecordingExistsOnServer] = useState(Boolean(initialRecordingUrl));
+
+  const [status, setStatus] = useState({ type: null, message: null });
+
+  useEffect(() => {
+    if (initialRecordingUrl) {
+      setMediaUrl(initialRecordingUrl);
+    }
+  }, [initialRecordingUrl]);
+
+  useEffect(() => {
+    if (mediaUrl && !chunks.current.length) {
+      const fetchRecording = async () => {
+        try {
+          const response = await fetch(mediaUrl);
+          const blob = await response.blob();
+          chunks.current = [blob];
+        } catch (error) {
+          console.error('Error fetching recording:', error);
+        }
+      };
+      fetchRecording();
+    }
+  }, [mediaUrl]);
+
+  useEffect(() => {
+    setRecordingExistsOnServer(Boolean(initialRecordingUrl));
+  }, [initialRecordingUrl]);
 
   const getSupportedMimeType = async () => {
     if (MediaRecorder.isTypeSupported('video/mp4')) {
       return 'video/mp4';
     }
-    if (MediaRecorder.isTypeSupported('audio/webm')) {
-      console.warn('MP4 not supported; falling back to audio recording');
-      return 'audio/webm';
-    }
+    // If MP4 isn't supported, show error instead of falling back to webm
+    console.error('MP4 recording not supported in this browser');
+    setError('הדפדפן אינו תומך בהקלטת MP4');
     return '';
   };
 
@@ -60,7 +102,6 @@ export default function RecordingControls({ onRecordingComplete, patientID }) {
   };
 
   const startRecording = async () => {
-    // If there's an existing recording, clear it first
     if (mediaUrl) {
       URL.revokeObjectURL(mediaUrl);
       setMediaUrl(null);
@@ -144,30 +185,120 @@ export default function RecordingControls({ onRecordingComplete, patientID }) {
     }
   };
 
-  const handleTranscribe = async () => {
-    if (!mediaUrl || !chunks.current.length) return;
+  const handleStartRecording = () => {
+    if (existingRecordingUrl) {
+      setShowOverwriteModal(true);
+    } else {
+      startRecording();
+    }
+  };
 
+  const handleDeleteRecording = async () => {
+    setDeleteLoading(true);
+    try {
+      const recordingResponse = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/delete?' + 
+        new URLSearchParams({
+          patientId: patientID,
+          fileName: `${patientID}.mp4`
+        }).toString(), {
+          method: 'DELETE',
+          headers: {
+            'x-api-key': process.env.REACT_APP_API_KEY || ''
+          }
+        });
+
+      if (!recordingResponse.ok) {
+        throw new Error('Failed to delete recording');
+      }
+
+      // Only clear recording-related state
+      setMediaUrl(null);
+      if (onRecordingDelete) onRecordingDelete();
+      if (onRecordingComplete) onRecordingComplete(null);
+
+      if (mediaUrl) {
+        URL.revokeObjectURL(mediaUrl);
+      }
+      chunks.current = [];
+      setDuration(0);
+
+    } catch (error) {
+      console.error('Error deleting recording:', error);
+      setError('שגיאה במחיקת ההקלטה');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const handleUploadRecording = async () => {
+    if (!mediaUrl || !chunks.current.length) return;
+    
+    console.log('Starting upload process...');
+    console.log('Chunks available:', chunks.current.length);
+    
     setIsTranscribing(true);
     setError('');
+    setStatus({ type: null, message: null });
     
     try {
-      // Create a Blob from the recorded chunks with video/mp4 type
-      const recordingBlob = new Blob(chunks.current, { 
-        type: 'video/mp4'
+      const recordingBlob = new Blob(chunks.current, { type: 'video/mp4' });
+      console.log('Created blob:', {
+        size: recordingBlob.size,
+        type: recordingBlob.type
       });
 
-      console.log('Recording blob:', recordingBlob);
-      console.log('Patient ID:', patientID);
+      // Convert blob to base64
+      const base64File = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(recordingBlob);
+        reader.onload = () => {
+          const base64 = reader.result.split(',')[1];
+          resolve(base64);
+        };
+        reader.onerror = error => reject(error);
+      });
 
-      // Upload the recording
-      await uploadRecording(recordingBlob, patientID);
+      console.log('Converted to base64, sending to upload endpoint');
+      
+      const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.REACT_APP_API_KEY || ''
+        },
+        body: JSON.stringify({
+          id: patientID,
+          file: base64File,
+          fileName: `${patientID}.mp4`,
+          contentType: 'video/mp4'
+        })
+      });
 
-      // Start transcription and wait for result
-      const transcriptText = await startTranscription(patientID);
-      setTranscript(transcriptText);
+      console.log('Upload response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Upload error response:', errorText);
+        throw new Error(`Failed to upload: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Upload completed successfully:', result);
+      
+      setRecordingExistsOnServer(true);
+      setStatus({ type: 'success', message: 'ההקלטה הועלתה בהצלחה' });
+      
+      // Call both callbacks
+      if (onRecordingComplete) {
+        onRecordingComplete(mediaUrl);
+      }
+      if (onUploadComplete) {
+        onUploadComplete(patientID);  // This will trigger the refresh
+      }
     } catch (err) {
-      setError(`שגיאה בתמלול ההקלטה: ${err.message}`);
-      console.error('Transcription error:', err);
+      console.error('Upload error:', err);
+      setError('שגיאה בהעלאת ההקלטה');
+      setStatus({ type: 'error', message: 'שגיאה בהעלאת ההקלטה' });
     } finally {
       setIsTranscribing(false);
     }
@@ -188,7 +319,7 @@ export default function RecordingControls({ onRecordingComplete, patientID }) {
           <Button
             variant="icon"
             iconSvg={isRecording ? <StopIcon /> : <RecordIcon />}
-            onClick={isRecording ? stopRecording : startRecording}
+            onClick={isRecording ? stopRecording : handleStartRecording}
           />
           <Button
             variant="icon"
@@ -244,25 +375,26 @@ export default function RecordingControls({ onRecordingComplete, patientID }) {
               onTimeUpdate={(e) => setDuration(e.target.currentTime)}
               onLoadedMetadata={(e) => setDuration(e.target.duration)}
             >
-              <source src={mediaUrl} type={mediaRecorder.current?.mimeType} />
+              <source src={mediaUrl} type="video/mp4" />
               הדפדפן שלך אינו תומך בנגן השמע.
             </audio>
 
             <SpaceBetween direction="horizontal" size="xs">
               <Button 
-                variant="primary"
-                onClick={handleTranscribe}
-                disabled={isRecording || isTranscribing}
-                loading={isTranscribing}
-              >
-                {isTranscribing ? 'מתמלל...' : 'תמלל שיחה'}
-              </Button>
-              <Button 
                 variant="normal" 
-                onClick={clearRecording}
-                disabled={isTranscribing}
+                onClick={handleDeleteRecording}
+                disabled={isTranscribing || deleteLoading}
+                loading={deleteLoading}
               >
                 מחק הקלטה
+              </Button>
+              <Button
+                variant="normal"
+                onClick={handleUploadRecording}
+                disabled={isTranscribing || !mediaUrl}
+                loading={isTranscribing}
+              >
+                העלה הקלטה
               </Button>
             </SpaceBetween>
 
@@ -271,21 +403,40 @@ export default function RecordingControls({ onRecordingComplete, patientID }) {
                 {error}
               </StatusIndicator>
             )}
-
-            {transcript && (
-              <Container header={<h3>תמלול</h3>}>
-                <div style={{ 
-                  whiteSpace: 'pre-wrap',
-                  padding: '10px',
-                  backgroundColor: '#f8f8f8',
-                  borderRadius: '4px'
-                }}>
-                  {transcript}
-                </div>
-              </Container>
+            {status.message && (
+              <StatusIndicator type={status.type}>
+                {status.message}
+              </StatusIndicator>
             )}
           </>
         )}
+
+        <Modal
+          visible={showOverwriteModal}
+          onDismiss={() => setShowOverwriteModal(false)}
+          header="החלפת הקלטה קיימת"
+          footer={
+            <SpaceBetween direction="horizontal" size="xs">
+              <Button 
+                variant="primary" 
+                onClick={() => {
+                  setShowOverwriteModal(false);
+                  startRecording();
+                }}
+              >
+                החלף הקלטה
+              </Button>
+              <Button 
+                variant="link" 
+                onClick={() => setShowOverwriteModal(false)}
+              >
+                ביטול
+              </Button>
+            </SpaceBetween>
+          }
+        >
+          <p>נמצאה הקלטה קיימת. האם ברצונך להחליף אותה בהקלטה חדשה?</p>
+        </Modal>
 
         {usedFormat === 'mp3' && (
           <Box fontSize="caption" color="text-status-error">

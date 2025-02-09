@@ -218,6 +218,15 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onA
   const [fileToDelete, setFileToDelete] = useState(null);
   const [isDeletingFile, setIsDeletingFile] = useState(false);
 
+  // Replace direct settings usage with the state variable
+  const [settings, setSettings] = useState({
+    system_instructions: '',
+    prompt: '',
+    max_tokens: 4096,
+    transcription_system_instructions: '',
+    transcription_prompt: ''
+  });
+
   // Add this effect to fetch settings
   useEffect(() => {
     const fetchSettings = async () => {
@@ -851,8 +860,8 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onA
           'x-api-key': process.env.REACT_APP_API_KEY || ''
         },
         body: JSON.stringify({
-          system_instructions: settings.transcription_system_instructions,
-          prompt: settings.transcription_prompt + currentTranscript,
+          system_instructions: settings.system_instructions,
+          prompt: settings.prompt + currentTranscript,
           images: [],
           max_tokens: settings.max_tokens || 4096
         })
@@ -951,10 +960,10 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onA
 
       // Construct payload exactly like Step3
       const payload = {
-        system_instructions: settings.summary_system_instructions,
-        prompt: settings.summary_prompt,
+        system_instructions: settings.system_instructions,
+        prompt: settings.prompt,
         images: images,
-        max_tokens: settings.max_tokens
+        max_tokens: settings.max_tokens || 4096
       };
 
       console.log('Sending payload structure:', {

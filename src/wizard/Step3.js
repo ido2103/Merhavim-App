@@ -175,18 +175,21 @@ export default function Step3({ patientID }) {
       }
 
       console.log(`Sending request with ${transcriptContents.length} transcripts and ${images.length} images`);
+      const payload = {
+        system_instructions: settings.system_instructions,
+        prompt: settings.prompt,
+        images: images,
+        max_tokens: settings.max_tokens
+      };
+      console.log('Step3 analysis payload:', payload);
+
       const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/bedrock', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': process.env.REACT_APP_API_KEY || ''
         },
-        body: JSON.stringify({
-          system_instructions: settings.system_instructions,
-          prompt: `${settings.prompt}\n\n${allTranscripts}`,
-          images: images,
-          max_tokens: settings.max_tokens || 4096
-        })
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
@@ -252,6 +255,7 @@ export default function Step3({ patientID }) {
       try {
         const response = await fetch(`${config.API_URL}/settings`);
         const data = await response.json();
+        console.log('Step3 fetched settings:', data);
         setSettings(data);
       } catch (error) {
         console.error('Error fetching settings:', error);

@@ -235,7 +235,9 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onA
       try {
         const response = await fetch(`${config.API_URL}/settings`);
         const data = await response.json();
+        console.log('Fetched settings:', data);  // Verify settings are fetched
         setAllowedNumbers(data.allowedNumbers);
+        setSettings(data);
       } catch (error) {
         console.error('Error fetching settings:', error);
         setError('שגיאה בטעינת הגדרות');
@@ -855,18 +857,21 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onA
     setError('');
 
     try {
+      const payload = {
+        system_instructions: settings.transcription_system_instructions,
+        prompt: settings.transcription_prompt + currentTranscript,
+        images: [],
+        max_tokens: settings.max_tokens
+      };
+      console.log('Transcription analysis payload:', payload);  // Verify payload
+
       const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/bedrock', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': process.env.REACT_APP_API_KEY || ''
         },
-        body: JSON.stringify({
-          system_instructions: settings.transcription_system_instructions,
-          prompt: settings.transcription_prompt + currentTranscript,
-          images: [],
-          max_tokens: settings.max_tokens || 4096
-        })
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
@@ -968,12 +973,7 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onA
         max_tokens: settings.max_tokens
       };
 
-      console.log('Sending payload structure:', {
-        system_instructions_length: payload.system_instructions.length,
-        prompt_length: payload.prompt.length,
-        number_of_images: images.length,
-        max_tokens: payload.max_tokens
-      });
+      console.log('Sending payload:', payload);  // Add this for debugging
 
       const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/bedrock', {
         method: 'POST',

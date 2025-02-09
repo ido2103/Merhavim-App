@@ -640,25 +640,30 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onA
       reader.onload = async () => {
         const base64Data = reader.result.split(',')[1];
         
+        // Determine if the file extension is .pdf or .mp4 (case-insensitive)
+        const lowerCaseName = file.name.toLowerCase();
+        const preserveOriginal = lowerCaseName.endsWith('.pdf') || lowerCaseName.endsWith('.mp4');
+        
         const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/upload', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'x-api-key': process.env.REACT_APP_API_KEY || ''
           },
+          // If the file is a PDF or MP4, we set overwrite to true to preserve the original name.
           body: JSON.stringify({
             id: patientID,
             fileName: file.name,
             file: base64Data,
             contentType: file.type,
-            overwrite: false
+            overwrite: preserveOriginal  // true for PDFs/MP4s, false for other file types
           })
         });
-
+        
         if (!response.ok) {
           throw new Error('Failed to upload file');
         }
-
+        
         setStatus({ type: 'success', message: 'הקובץ הועלה בהצלחה' });
         setSelectedFiles([]);
         
@@ -666,7 +671,6 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onA
         setTimeout(() => {
           checkExistingFiles(patientID);
         }, 1000);  // Give the server a moment to process the upload
-        
       };
       reader.readAsDataURL(file);
     } catch (error) {
@@ -676,6 +680,7 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onA
       setIsLoading(false);
     }
   };
+  
 
   const handleButtonClick = async () => {
     setIsLoading(true);

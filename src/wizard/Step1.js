@@ -224,7 +224,9 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onA
     prompt: '',
     max_tokens: 4096,
     transcription_system_instructions: '',
-    transcription_prompt: ''
+    transcription_prompt: '',
+    summary_system_instructions: '',
+    summary_prompt: ''
   });
 
   // Add this effect to fetch settings
@@ -860,8 +862,8 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onA
           'x-api-key': process.env.REACT_APP_API_KEY || ''
         },
         body: JSON.stringify({
-          system_instructions: settings.system_instructions,
-          prompt: settings.prompt + currentTranscript,
+          system_instructions: settings.transcription_system_instructions,
+          prompt: settings.transcription_prompt + currentTranscript,
           images: [],
           max_tokens: settings.max_tokens || 4096
         })
@@ -960,10 +962,10 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onA
 
       // Construct payload exactly like Step3
       const payload = {
-        system_instructions: settings.system_instructions,
-        prompt: settings.prompt,
+        system_instructions: settings.summary_system_instructions,
+        prompt: settings.summary_prompt,
         images: images,
-        max_tokens: settings.max_tokens || 4096
+        max_tokens: settings.max_tokens
       };
 
       console.log('Sending payload structure:', {

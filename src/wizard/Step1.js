@@ -17,11 +17,11 @@ import {
   Select,
   FileTokenGroup
 } from '@cloudscape-design/components';
-import settings from '../settings.json';
 import RecordingControls from '../components/RecordingControls';
 import TranscriptionSection from '../components/TranscriptionSection';
 import { startTranscription } from '../services/transcriptionService';
 import { convertPdfToImages } from '../components/pdfHelper';
+import config from '../config';
 
 const FileList = ({ files }) => {
   return (
@@ -143,7 +143,7 @@ const TranscriptDisplay = ({ transcript, insight }) => {
 };
 
 export default function Step1({ patientID, setPatientID, onValidationChange, onAddNewPatient, onExistingMedia, activeStepIndex, onRecordingComplete }) {
-  const [allowedNumbers, setAllowedNumbers] = useState(settings.allowedNumbers);
+  const [allowedNumbers, setAllowedNumbers] = useState([]);
   const [status, setStatus] = useState({ type: '', message: '' });
   const [isExistingPatient, setIsExistingPatient] = useState(false);
   const [showButton, setShowButton] = useState(false);
@@ -217,6 +217,22 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onA
   const [showDeleteFileModal, setShowDeleteFileModal] = useState(false);
   const [fileToDelete, setFileToDelete] = useState(null);
   const [isDeletingFile, setIsDeletingFile] = useState(false);
+
+  // Add this effect to fetch settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch(`${config.API_URL}/settings`);
+        const data = await response.json();
+        setAllowedNumbers(data.allowedNumbers);
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+        setError('שגיאה בטעינת הגדרות');
+      }
+    };
+    
+    fetchSettings();
+  }, []);
 
   // Add this function to handle saving
   const handleTranscriptSave = async (fileName, transcriptData) => {

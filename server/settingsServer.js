@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const SETTINGS_FILE_PATH = path.join(__dirname, '../src/settings.json');
+const SETTINGS_FILE_PATH = path.join(__dirname, './settings.json');
 
 app.post('/update-settings', async (req, res) => {
   try {
@@ -43,6 +43,17 @@ app.post('/delete-patient', async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error('Error in delete-patient:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/settings', async (req, res) => {
+  try {
+    const settingsData = await fs.readFile(SETTINGS_FILE_PATH, 'utf8');
+    const settings = JSON.parse(settingsData);
+    res.json(settings);
+  } catch (error) {
+    console.error('Error reading settings:', error);
     res.status(500).json({ error: error.message });
   }
 });

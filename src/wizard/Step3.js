@@ -12,7 +12,7 @@ import {
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { saveAs } from 'file-saver';
 import { convertPdfToImages } from '../components/pdfHelper';
-import settings from '../settings.json';
+import config from '../config';
 
 export default function Step3({ patientID }) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -25,6 +25,12 @@ export default function Step3({ patientID }) {
   const [pdfPageCounts, setPdfPageCounts] = useState({});
   
   const [transcriptContent, setTranscriptContent] = useState('');
+
+  const [settings, setSettings] = useState({
+    system_instructions: '',
+    prompt: '',
+    max_tokens: 4096
+  });
 
   const getPDFPageCount = async (url) => {
     try {
@@ -240,6 +246,21 @@ export default function Step3({ patientID }) {
   const handleTranscriptDismiss = (index) => {
     setAvailableTranscripts(prev => prev.filter((_, i) => i !== index));
   };
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch(`${config.API_URL}/settings`);
+        const data = await response.json();
+        setSettings(data);
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+        setError('שגיאה בטעינת הגדרות');
+      }
+    };
+    
+    fetchSettings();
+  }, []);
 
   return (
     <Container 

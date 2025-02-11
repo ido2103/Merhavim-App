@@ -55,14 +55,18 @@ export default function TranscriptionSection({
     fetchDurations();
   }, [availableRecordings]);
 
+  useEffect(() => {
+    console.log('Available transcripts:', availableTranscripts);
+  }, [availableTranscripts]);
+
+  useEffect(() => {
+    console.log('TranscriptionSection - Available Recordings:', availableRecordings);
+  }, [availableRecordings]);
+
   const recordingOptions = availableRecordings.map(recording => ({
     label: recording.fileName,
     value: recording.url,
-    description: `${new Date(recording.lastModified).toLocaleString()} ${
-      recordingDurations[recording.url] 
-        ? `(${Math.round(recordingDurations[recording.url])} שניות)` 
-        : ''
-    }`
+    description: `${new Date(recording.lastModified).toLocaleString()}`
   }));
 
   const transcriptOptions = availableTranscripts.map(transcript => ({
@@ -143,6 +147,7 @@ export default function TranscriptionSection({
               <Select
                 selectedOption={selectedTranscript}
                 onChange={({ detail }) => {
+                  console.log('Selected transcript:', detail.selectedOption);
                   setSelectedTranscript(detail.selectedOption);
                   handleTranscriptSelection(detail.selectedOption);
                 }}

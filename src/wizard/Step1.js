@@ -1237,26 +1237,6 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
             <div style={{ flex: 0 }}>
               <h3>הקלטת שיחה</h3>
               <SpaceBetween direction="vertical" size="s">
-                <FormField>
-                  <FileUpload
-                    onChange={handleAudioFileChange}
-                    value={selectedAudioFiles}
-                    i18nStrings={{
-                      uploadButtonText: e => "העלה הקלטה",
-                      dropzoneText: e => "גרור קובץ הקלטה לכאן",
-                      removeFileAriaLabel: e => "הסר קובץ",
-                      limitShowFewer: "הצג פחות",
-                      limitShowMore: "הצג יותר",
-                      errorIconAriaLabel: "שגיאה"
-                    }}
-                    accept=".mp4"
-                    multiple={false}
-                    showFileLastModified
-                    showFileSize
-                    tokenLimit={1}
-                    constraintText="העלה קובץ הקלטה בלבד"
-                  />
-                </FormField>
 
                 {filesFound.video && (
                   <TokenGroup

@@ -27,6 +27,8 @@ export default function TranscriptionSection({
   const [selectedTranscript, setSelectedTranscript] = useState(null);
   const [recordingDurations, setRecordingDurations] = useState({});
   const [fullTranscriptData, setFullTranscriptData] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     const getDuration = async (url) => {
@@ -85,13 +87,52 @@ export default function TranscriptionSection({
         }
       };
       setFullTranscriptData(updatedData);
+      setHasChanges(true);
     }
     onTranscriptChange?.(newText);
   };
 
   const handleSave = () => {
     if (fullTranscriptData && selectedTranscript) {
-      onTranscriptSave(selectedTranscript.label, fullTranscriptData);
+      // Split the current transcript into segments
+      const segments = currentTranscript.split('\n').map(line => {
+        const [speaker, text] = line.split(': ');
+        return {
+          speaker_label: speaker === 'דובר 1' ? 'spk_0' : 'spk_1',
+          transcript: text
+        };
+      });
+
+      const updatedData = {
+        ...fullTranscriptData,
+        results: {
+          ...fullTranscriptData.results,
+          transcripts: [{
+            transcript: segments.map(s => s.transcript).join(' ')
+          }],
+          audio_segments: segments.map((segment, index) => ({
+            ...fullTranscriptData.results.audio_segments[index],
+            speaker_label: segment.speaker_label,
+            transcript: segment.transcript
+          }))
+        }
+      };
+      
+      onTranscriptSave(selectedTranscript.label, updatedData);
+      setHasChanges(false);
+    }
+  };
+
+  const handleDelete = async (transcriptLabel) => {
+    setIsDeleting(true);
+    try {
+      await onTranscriptDelete(transcriptLabel);
+      if (selectedTranscript?.label === transcriptLabel) {
+        setFullTranscriptData(null);
+        onTranscriptSelect('');
+      }
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -101,8 +142,16 @@ export default function TranscriptionSection({
       if (response.ok) {
         const data = await response.json();
         setFullTranscriptData(data);
-        const transcriptText = data.results?.transcripts?.[0]?.transcript || '';
-        onTranscriptSelect(transcriptText);
+        
+        // Format the transcript into turns using audio_segments
+        const formattedTranscript = data.results.audio_segments
+          .map(segment => {
+            const speaker = segment.speaker_label === 'spk_0' ? 'דובר 1' : 'דובר 2';
+            return `${speaker}: ${segment.transcript}`;
+          })
+          .join('\n');
+
+        onTranscriptSelect(formattedTranscript);
       }
     } catch (error) {
       console.error('Error loading transcript:', error);
@@ -174,15 +223,16 @@ export default function TranscriptionSection({
               <Button 
                 variant="primary"
                 onClick={handleSave}
-                disabled={isSaving || !fullTranscriptData}
+                disabled={isSaving || !hasChanges || !selectedTranscript}
                 loading={isSaving}
               >
                 שמור תמלול
               </Button>
               <Button
-                variant="normal"
-                onClick={() => onTranscriptDelete(selectedTranscript.label)}
-                disabled={!selectedTranscript}
+                variant="link"
+                onClick={() => handleDelete(selectedTranscript?.label)}
+                disabled={isDeleting}
+                loading={isDeleting}
               >
                 מחק תמלול
               </Button>

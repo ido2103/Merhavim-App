@@ -572,6 +572,56 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
     maybeEnableInput();
   };
 
+  const handleAudioFileChange = async ({ detail }) => {
+    const file = detail.value[0];
+    if (!file) {
+      setAudioFileError('');
+      setSelectedAudioFiles([]);
+      return;
+    }
+
+    setSelectedAudioFiles(detail.value);
+    setAudioFileError('');
+
+    try {
+      console.log('Starting audio file upload...', file);
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64File = reader.result.split(',')[1];
+        
+        console.log('Sending upload request for audio file...');
+        const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': process.env.REACT_APP_API_KEY || '',
+          },
+          body: JSON.stringify({
+            id: patientID,
+            file: base64File,
+            fileName: file.name,
+            contentType: 'video/mp4',
+            overwrite: true
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to upload audio file');
+        }
+
+        console.log('Audio file uploaded successfully');
+        await fetchAvailableRecordings();  // Refresh the recordings list
+        setStatus({ type: 'success', message: 'הקלטה הועלתה בהצלחה' });
+      };
+
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error uploading audio file:', error);
+      setAudioFileError('שגיאה בהעלאת הקובץ');
+      setSelectedAudioFiles([]);
+    }
+  };
+
   const handleFileChange = ({ detail }) => {
     const files = detail.value;
     setFileError('');
@@ -591,25 +641,6 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
     setSelectedFiles([file]);
     // Automatically upload the file when it's selected
     uploadFile(file);
-  };
-
-  const handleAudioFileChange = ({ detail }) => {
-    const files = detail.value;
-    setAudioFileError('');
-    
-    if (!files || files.length === 0) {
-      setSelectedAudioFiles([]);
-      return;
-    }
-
-    const file = files[0];
-    if (!file.type.includes('mp4')) {
-      setAudioFileError('יש להעלות קובץ MP4 בלבד');
-      setSelectedAudioFiles([]);
-      return;
-    }
-
-    setSelectedAudioFiles([file]);
   };
 
   const uploadFile = async (file) => {
@@ -1194,7 +1225,7 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
         {isExistingPatient && (
           <SpaceBetween direction="vertical" size="l" style={{ flex: 1, overflow: 'auto' }}>
             <div style={{ flex: 0 }}>
-              <h3>מסמך PDF</h3>
+              <h3>מסמכי PDF</h3>
               <SpaceBetween direction="vertical" size="s">
                 <FormField 
                   errorText={fileError}
@@ -1235,8 +1266,9 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
             </div>
 
             <div style={{ flex: 0 }}>
-              <h3>הקלטת שיחה</h3>
+              <h3>הקלטות שיחה</h3>
               <SpaceBetween direction="vertical" size="s">
+
 
                 {filesFound.video && (
                   <TokenGroup
@@ -1355,7 +1387,7 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
                     onClick={handleAnalyzeTranscription}
                     loading={isAnalyzing}
                   >
-                    הפק תובנות  
+                    נתח שיחה 
                   </Button>
 
                   {error && (

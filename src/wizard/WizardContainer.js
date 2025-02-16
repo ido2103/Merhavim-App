@@ -55,7 +55,7 @@ export default function WizardContainer() {
 
   const steps = [
     {
-      title: 'פרטי מטופל',
+      title: "בחירת מטופל והעלאת מידע רפואי",
       content: (
         <Step1
           patientID={patientID}
@@ -65,17 +65,19 @@ export default function WizardContainer() {
           activeStepIndex={activeStepIndex}
           onRecordingComplete={handleRecordingComplete}
         />
-      )
+      ),
+      isOptional: false,
     },
     {
-      title: 'סיכום',
+      title: "ניתוח קבצי המטופל והכנת דוח מסכם",
       content: (
         <Step3
           patientID={patientID}
           transcript={existingTranscript}
           pdfUrl={pdfUrl}
         />
-      )
+      ),
+      isOptional: false,
     }
   ];
 
@@ -87,18 +89,21 @@ export default function WizardContainer() {
         activeStepIndex={activeStepIndex}
         onNavigate={handleStepChange}
         i18nStrings={{
-          stepNumberLabel: stepNumber => `שלב ${stepNumber}`,
-          collapsedStepsLabel: (stepNumber, stepsCount) => `שלב ${stepNumber} מתוך ${stepsCount}`,
-          cancelButton: "בטל",
-          previousButton: "הקודם",
-          nextButton: "הבא",
+          stepNumberLabel: stepNumber =>
+            `שלב ${stepNumber}`,
+          collapsedStepsLabel: (stepNumber, stepsCount) =>
+            `שלב ${stepNumber} מתוך ${stepsCount}`,
+          cancelButton: "ביטול",
+          previousButton: activeStepIndex === 1 ? "עדכון מידע מקדים" : "בחירת מטופל אחר",
+          nextButton: activeStepIndex === 0 ? "הכנת הדוח המסכם" : "הבא",
           submitButton: "סיום",
-          optional: "אופציונלי",
+          optional: "אופציונלי"
         }}
         onSubmit={() => alert('האשף הסתיים!')}
         onCancel={() => alert('האשף בוטל')}
         isLoadingNextStep={activeStepIndex === 0 && !isStep1Valid}
         nextButtonDisabled={activeStepIndex === 0 && !isStep1Valid}
+        submitButtonDisabled={true}
       />
     </div>
   );

@@ -1,9 +1,8 @@
-const API_URL = 'https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/transcribe';
-const API_KEY = process.env.REACT_APP_API_KEY || '';
+import { API_ENDPOINTS, API_KEY, buildUrl } from '../config';
 
 export async function getUploadUrl(patientID) {
   try {
-    const response = await fetch(API_URL, {
+    const response = await fetch(API_ENDPOINTS.TRANSCRIBE, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -67,11 +66,11 @@ export async function uploadRecording(file, patientID) {
 
 export async function startTranscription(patientID, fileName) {
   try {
-    const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/transcribe', {
+    const response = await fetch(API_ENDPOINTS.TRANSCRIBE, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.REACT_APP_API_KEY || ''
+        'x-api-key': API_KEY
       },
       body: JSON.stringify({
         patientID,
@@ -95,7 +94,7 @@ export async function startTranscription(patientID, fileName) {
 // Add a helper function to check if the API is accessible
 export async function checkApiAccess() {
   try {
-    const response = await fetch(API_URL, {
+    const response = await fetch(API_ENDPOINTS.TRANSCRIBE, {
       method: 'OPTIONS',
       headers: {
         'Content-Type': 'application/json',

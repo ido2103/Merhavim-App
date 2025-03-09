@@ -10,6 +10,7 @@ import RecordingControls from '../components/RecordingControls';
 import settings from '../settings.json';
 import TranscriptionDisplay from '../components/TranscriptionDisplay';
 import TranscriptionSection from '../components/TranscriptionSection';
+import { API_ENDPOINTS, API_KEY, buildUrl } from '../config';
 
 export default function Step2({ 
   patientID,
@@ -42,16 +43,17 @@ export default function Step2({
 
   const fetchAvailableRecordings = async () => {
     try {
-      const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/files?' + 
-        new URLSearchParams({
-          patientId: patientID,
-          fileName: '*.mp4'
-        }).toString(), {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': process.env.REACT_APP_API_KEY || ''
-          }
-        });
+      const recordingsUrl = buildUrl(API_ENDPOINTS.FILES, {
+        patientId: patientID,
+        fileName: '*.mp4'
+      });
+      
+      const response = await fetch(recordingsUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY
+        }
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -73,11 +75,11 @@ export default function Step2({
     setError('');
 
     try {
-      const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/bedrock', {
+      const response = await fetch(API_ENDPOINTS.BEDROCK, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': process.env.REACT_APP_API_KEY || ''
+          'x-api-key': API_KEY
         },
         body: JSON.stringify({
           system_instructions: settings.transcription_system_instructions,

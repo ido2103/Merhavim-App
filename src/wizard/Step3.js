@@ -13,6 +13,7 @@ import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { saveAs } from 'file-saver';
 import { convertPdfToImages } from '../components/pdfHelper';
 import settings from '../settings.json';
+import { API_ENDPOINTS, API_KEY, buildUrl } from '../config';
 
 const SYSTEM_INSTRUCTIONS = "...";
 const PROMPT = "...";
@@ -44,16 +45,17 @@ export default function Step3({ patientID }) {
 
   const fetchAvailableTranscripts = async () => {
     try {
-      const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/files?' + 
-        new URLSearchParams({
-          patientId: patientID,
-          fileName: '*.json'
-        }).toString(), {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': process.env.REACT_APP_API_KEY || ''
-          }
-        });
+      const transcriptsUrl = buildUrl(API_ENDPOINTS.FILES, {
+        patientId: patientID,
+        fileName: '*.json'
+      });
+      
+      const response = await fetch(transcriptsUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY
+        }
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -67,16 +69,17 @@ export default function Step3({ patientID }) {
 
   const fetchExistingPDFs = async () => {
     try {
-      const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/files?' + 
-        new URLSearchParams({
-          patientId: patientID,
-          fileName: '*.pdf'
-        }).toString(), {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': process.env.REACT_APP_API_KEY || ''
-          }
-        });
+      const pdfsUrl = buildUrl(API_ENDPOINTS.FILES, {
+        patientId: patientID,
+        fileName: '*.pdf'
+      });
+      
+      const response = await fetch(pdfsUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY
+        }
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -173,11 +176,11 @@ export default function Step3({ patientID }) {
       }
 
       console.log(`Sending request with ${transcriptContents.length} transcripts and ${images.length} images`);
-      const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/bedrock', {
+      const response = await fetch(API_ENDPOINTS.BEDROCK, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': process.env.REACT_APP_API_KEY || ''
+          'x-api-key': API_KEY
         },
         body: JSON.stringify({
           system_instructions: settings.system_instructions,

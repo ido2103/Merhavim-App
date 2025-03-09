@@ -22,6 +22,7 @@ import TranscriptionSection from '../components/TranscriptionSection';
 import { startTranscription } from '../services/transcriptionService';
 import { convertPdfToImages } from '../components/pdfHelper';
 import settings from '../settings.json';
+import { API_ENDPOINTS, API_KEY, buildUrl } from '../config';
 
 const FileList = ({ files }) => {
   return (
@@ -231,11 +232,11 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
       const jsonString = JSON.stringify(transcriptData);
       const base64Data = btoa(unescape(encodeURIComponent(jsonString)));
 
-      const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/upload', {
+      const response = await fetch(API_ENDPOINTS.UPLOAD, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': process.env.REACT_APP_API_KEY || '',
+          'x-api-key': API_KEY,
           'Accept': 'application/json'
         },
         body: JSON.stringify({
@@ -248,16 +249,15 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
       });
 
       if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(`Failed to save transcript: ${errorData}`);
+        throw new Error(`Failed to save transcript: ${response.status}`);
       }
 
-      await fetchAvailableTranscripts();
-      setStatus({ type: 'success', message: 'התמלול נשמר בהצלחה' });
+      const result = await response.json();
+      console.log('Transcript saved:', result);
+      setIsSaving(false);
     } catch (error) {
       console.error('Error saving transcript:', error);
-      setStatus({ type: 'error', message: 'שגיאה בשמירת התמלול' });
-    } finally {
+      setError('שגיאה בשמירת התמלול');
       setIsSaving(false);
     }
   };
@@ -274,55 +274,51 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
     setAvailableRecordings([]);
   };
 
-  const fetchAvailableRecordings = async () => {
+  const fetchAvailableRecordings = async (id = patientID) => {
     try {
-      const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/files?' + 
-        new URLSearchParams({
-          patientId: patientID,
-          fileName: '*.mp4'
-        }).toString(), {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': process.env.REACT_APP_API_KEY || ''
-          }
-        });
+      const recordingsUrl = buildUrl(API_ENDPOINTS.FILES, {
+        patientId: id,
+        fileName: '*.mp4,*.mp3'
+      });
+      
+      const response = await fetch(recordingsUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY
+        }
+      });
 
       if (response.ok) {
         const data = await response.json();
         setAvailableRecordings(data.files || []);
-        console.log('Available recordings:', data.files); // Debug log
       }
     } catch (error) {
-      // Only log to console, don't set error state
       console.error('Error fetching recordings:', error);
+      setError('שגיאה בטעינת רשימת ההקלטות');
     }
   };
 
-  const fetchAvailableTranscripts = async () => {
+  const fetchAvailableTranscripts = async (id = patientID) => {
     try {
-      console.log('Fetching transcripts for patient:', patientID);
-      const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/files?' + 
-        new URLSearchParams({
-          patientId: patientID,
-          fileName: '*.json'
-        }).toString(), {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': process.env.REACT_APP_API_KEY || ''
-          }
-        });
+      const transcriptsUrl = buildUrl(API_ENDPOINTS.FILES, {
+        patientId: id,
+        fileName: '*.json'
+      });
+      
+      const response = await fetch(transcriptsUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY
+        }
+      });
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Fetched transcripts:', data);
         setAvailableTranscripts(data.files || []);
-      } else {
-        // Only log to console, don't set error state
-        console.error('Failed to fetch transcripts:', response.status);
       }
     } catch (error) {
-      // Only log to console, don't set error state
       console.error('Error fetching transcripts:', error);
+      setError('שגיאה בטעינת רשימת התמלולים');
     }
   };
 
@@ -363,16 +359,12 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
         .replace('output/transcribe/', '')  // Remove any path prefix
         .trim();
       
-      const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/delete?' + 
-        new URLSearchParams({
-          patientId: patientID,
-          fileName: baseFileName + '.json'
-        }).toString(), {
-          method: 'DELETE',
-          headers: {
-            'x-api-key': process.env.REACT_APP_API_KEY || ''
-          }
-        });
+      const response = await fetch(API_ENDPOINTS.DELETE, {
+        method: 'DELETE',
+        headers: {
+          'x-api-key': API_KEY
+        }
+      });
 
       if (!response.ok) {
         throw new Error('Failed to delete transcript');
@@ -448,17 +440,19 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
     
     try {
       // Check if directory exists by trying to list files
-      const directoryResponse = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/files?' + 
-        new URLSearchParams({
-          patientId: id,
-          fileName: '*'  // List all files to check if directory exists
-        }).toString(), {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': process.env.REACT_APP_API_KEY || '',
-            'Accept': 'application/json'
-          }
-        });
+      const filesUrl = buildUrl(API_ENDPOINTS.FILES, {
+        patientId: id,
+        fileName: '*'  // List all files to check if directory exists
+      });
+      
+      const directoryResponse = await fetch(filesUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY,
+          'Accept': 'application/json'
+        }
+      });
 
       if (!directoryResponse.ok) {
         // Directory doesn't exist - new patient
@@ -470,29 +464,33 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
       }
 
       // Directory exists, now check for specific file types
+      const mp4Url = buildUrl(API_ENDPOINTS.FILES, {
+        patientId: id,
+        fileName: '*.mp4'
+      });
+      
+      const pdfUrl = buildUrl(API_ENDPOINTS.FILES, {
+        patientId: id,
+        fileName: '*.pdf'
+      });
+      
       const [mp4Response, pdfResponse] = await Promise.all([
-        fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/files?' + 
-          new URLSearchParams({
-            patientId: id,
-            fileName: '*.mp4'
-          }).toString(), {
-            headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': process.env.REACT_APP_API_KEY || '',
-              'Accept': 'application/json'
-            }
-          }),
-        fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/files?' + 
-          new URLSearchParams({
-            patientId: id,
-            fileName: '*.pdf'
-          }).toString(), {
-            headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': process.env.REACT_APP_API_KEY || '',
-              'Accept': 'application/json'
-            }
-          })
+        fetch(mp4Url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': API_KEY,
+            'Accept': 'application/json'
+          }
+        }),
+        fetch(pdfUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': API_KEY,
+            'Accept': 'application/json'
+          }
+        })
       ]);
 
       const [mp4Data, pdfData] = await Promise.all([
@@ -540,8 +538,9 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
       setStatus({ type: 'success', message: 'נמצאו קבצים למטופל' });
       onValidationChange(true);
 
-      // Also fetch transcripts here
-      await fetchAvailableTranscripts();
+      // Also fetch transcripts and recordings here
+      await fetchAvailableTranscripts(id);
+      await fetchAvailableRecordings(id);
 
     } catch (error) {
       console.error('Error checking existing files:', error);
@@ -590,11 +589,11 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
         const base64File = reader.result.split(',')[1];
         
         console.log('Sending upload request for audio file...');
-        const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/upload', {
+        const response = await fetch(API_ENDPOINTS.UPLOAD, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': process.env.REACT_APP_API_KEY || '',
+            'x-api-key': API_KEY,
           },
           body: JSON.stringify({
             id: patientID,
@@ -654,11 +653,11 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
         const lowerCaseName = file.name.toLowerCase();
         const preserveOriginal = lowerCaseName.endsWith('.pdf') || lowerCaseName.endsWith('.mp4');
         
-        const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/upload', {
+        const response = await fetch(API_ENDPOINTS.UPLOAD, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': process.env.REACT_APP_API_KEY || ''
+            'x-api-key': API_KEY
           },
           // If the file is a PDF or MP4, we set overwrite to true to preserve the original name.
           body: JSON.stringify({
@@ -701,11 +700,11 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
         return;
       }
 
-      const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/upload', {
+      const response = await fetch(API_ENDPOINTS.UPLOAD, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': process.env.REACT_APP_API_KEY || '',
+          'x-api-key': API_KEY,
         },
         body: JSON.stringify({ id: patientID }),
       });
@@ -731,15 +730,16 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
     setIsDeleting(true);
     try {
       // Delete the entire patient directory in S3
-      const deleteResponse = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/delete?' + 
-        new URLSearchParams({
-          patientId: patientID, // Sending only patient id with no file name deletes the entire directory.
-        }).toString(), {
-          method: 'DELETE',
-          headers: {
-            'x-api-key': process.env.REACT_APP_API_KEY || ''
-          }
-        });
+      const deleteUrl = buildUrl(API_ENDPOINTS.DELETE, {
+        patientId: patientID // Sending only patient id with no file name deletes the entire directory.
+      });
+      
+      const deleteResponse = await fetch(deleteUrl, {
+        method: 'DELETE',
+        headers: {
+          'x-api-key': API_KEY
+        }
+      });
 
       if (!deleteResponse.ok) {
         throw new Error('Failed to delete patient directory');
@@ -789,11 +789,11 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
     setError('');
 
     try {
-      const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/bedrock', {
+      const response = await fetch(API_ENDPOINTS.BEDROCK, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': process.env.REACT_APP_API_KEY || ''
+          'x-api-key': API_KEY
         },
         body: JSON.stringify({
           system_instructions: settings.transcription_system_instructions,
@@ -897,11 +897,11 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
         max_tokens: payload.max_tokens
       });
 
-      const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/bedrock', {
+      const response = await fetch(API_ENDPOINTS.BEDROCK, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': process.env.REACT_APP_API_KEY || ''
+          'x-api-key': API_KEY
         },
         body: JSON.stringify(payload)
       });
@@ -1003,16 +1003,12 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
   const handleConfirmedDelete = async () => {
     setIsDeletingFile(true);
     try {
-      const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/delete?' + 
-        new URLSearchParams({
-          patientId: patientID,
-          fileName: `${fileToDelete.file.name}`
-        }).toString(), {
-          method: 'DELETE',
-          headers: {
-            'x-api-key': process.env.REACT_APP_API_KEY || ''
-          }
-        });
+      const response = await fetch(API_ENDPOINTS.DELETE, {
+        method: 'DELETE',
+        headers: {
+          'x-api-key': API_KEY
+        }
+      });
 
       if (!response.ok) {
         throw new Error('Failed to delete file');
@@ -1102,12 +1098,8 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
       return;
     }
     
-    const parsedValue = Number(patientID);
-    if (isNaN(parsedValue)) {
-      setStatus({ type: 'error', message: 'מספר מזהה אינו חוקי' });
-      return;
-    }
-
+    const parsedValue = patientID.trim();
+    
     // Reset states before checking
     setPdfUrl('');
     setVideoUrl('');
@@ -1128,10 +1120,8 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
     setAvailableTranscripts([]);
     setAvailableRecordings([]);
     
+    // Call checkExistingFiles with the patient ID
     checkExistingFiles(parsedValue);
-    setShowButton(true);
-    setIsExistingPatient(true);
-    onValidationChange(true);
   };
 
   // Keep only this useEffect for logging if needed
@@ -1143,6 +1133,147 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
       isExistingPatient
     });
   }, [onValidationChange, patientID, showButton, isExistingPatient]);
+
+  const handleDeleteTranscript = async (transcriptName) => {
+    try {
+      const deleteUrl = buildUrl(API_ENDPOINTS.DELETE, {
+        patientId: patientID,
+        fileName: transcriptName
+      });
+      
+      const response = await fetch(deleteUrl, {
+        method: 'DELETE',
+        headers: {
+          'x-api-key': API_KEY
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete transcript');
+      }
+
+      // Refresh the list of transcripts
+      fetchAvailableTranscripts();
+      return true;
+    } catch (error) {
+      console.error('Error deleting transcript:', error);
+      setError('שגיאה במחיקת התמלול');
+      return false;
+    }
+  };
+
+  const checkPatientExists = async (id) => {
+    setIsLoading(true);
+    setStatus({ type: '', message: '' });
+    
+    try {
+      // Check if directory exists by trying to list files
+      const filesUrl = buildUrl(API_ENDPOINTS.FILES, {
+        patientId: id,
+        fileName: '*'  // List all files to check if directory exists
+      });
+      
+      const directoryResponse = await fetch(filesUrl, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY,
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!directoryResponse.ok) {
+        throw new Error('Failed to check if patient exists');
+      }
+
+      const directoryData = await directoryResponse.json();
+      
+      // Directory exists, now check for specific file types
+      const mp4Url = buildUrl(API_ENDPOINTS.FILES, {
+        patientId: id,
+        fileName: '*.mp4'
+      });
+      
+      const pdfUrl = buildUrl(API_ENDPOINTS.FILES, {
+        patientId: id,
+        fileName: '*.pdf'
+      });
+      
+      const [mp4Response, pdfResponse] = await Promise.all([
+        fetch(mp4Url, {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': API_KEY,
+            'Accept': 'application/json'
+          }
+        }),
+        fetch(pdfUrl, {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': API_KEY,
+            'Accept': 'application/json'
+          }
+        })
+      ]);
+
+      const [mp4Data, pdfData] = await Promise.all([
+        mp4Response.json(),
+        pdfResponse.json()
+      ]);
+
+      // Directory exists but no files yet
+      if (!mp4Data.files?.length && !pdfData.files?.length) {
+        setStatus({ type: 'info', message: 'נמצא תיק מטופל ללא קבצים' });
+        setIsExistingPatient(true);
+        setShowButton(true);
+        onValidationChange(true);
+        return;
+      }
+
+      // Update state with found files
+      if (pdfData.files?.length > 0) {
+        const pdfFiles = await Promise.all(
+          pdfData.files.map(async file => 
+            await convertUrlToFile(file.url, file.fileName, 'application/pdf')
+          )
+        );
+        setExistingFiles(pdfFiles.filter(Boolean));
+      }
+
+      if (mp4Data.files?.length > 0) {
+        const mp4Files = await Promise.all(
+          mp4Data.files.map(async file => 
+            await convertUrlToFile(file.url, file.fileName, 'video/mp4')
+          )
+        );
+        setExistingAudioFiles(mp4Files.filter(Boolean));
+        setAvailableRecordings(mp4Data.files);
+      }
+
+      setPdfUrl(pdfData.files?.[0]?.url || '');
+      setVideoUrl(mp4Data.files?.[0]?.url || '');
+      setFilesFound({
+        pdf: Boolean(pdfData.files?.length),
+        video: Boolean(mp4Data.files?.length)
+      });
+
+      setIsExistingPatient(true);
+      setStatus({ type: 'success', message: 'נמצאו קבצים למטופל' });
+      onValidationChange(true);
+
+      // Also fetch transcripts here
+      await fetchAvailableTranscripts(id);
+
+    } catch (error) {
+      console.error('Error checking existing files:', error);
+      setError('שגיאה בטעינת קבצים קיימים');
+      setIsExistingPatient(false);
+      setShowButton(true);
+      onValidationChange(false);
+    } finally {
+      setIsLoadingMedia(false);
+      setDisablePatientInput(false);
+    }
+  };
 
   return (
     <Container 

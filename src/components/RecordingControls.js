@@ -9,6 +9,7 @@ import {
 } from '@cloudscape-design/components';
 import recordingPlaceholder from './recording-placeholder.png';
 import { uploadRecording, startTranscription } from '../services/transcriptionService';
+import { API_ENDPOINTS, API_KEY, buildUrl } from '../config';
 
 const RecordIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -196,16 +197,17 @@ export default function RecordingControls({
   const handleDeleteRecording = async () => {
     setDeleteLoading(true);
     try {
-      const recordingResponse = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/delete?' + 
-        new URLSearchParams({
-          patientId: patientID,
-          fileName: `${patientID}.mp4`
-        }).toString(), {
-          method: 'DELETE',
-          headers: {
-            'x-api-key': process.env.REACT_APP_API_KEY || ''
-          }
-        });
+      const deleteUrl = buildUrl(API_ENDPOINTS.DELETE, {
+        patientId: patientID,
+        fileName: `${patientID}.mp4`
+      });
+      
+      const recordingResponse = await fetch(deleteUrl, {
+        method: 'DELETE',
+        headers: {
+          'x-api-key': API_KEY
+        }
+      });
 
       if (!recordingResponse.ok) {
         throw new Error('Failed to delete recording');
@@ -248,58 +250,50 @@ export default function RecordingControls({
       });
 
       // Convert blob to base64
-      const base64File = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(recordingBlob);
-        reader.onload = () => {
-          const base64 = reader.result.split(',')[1];
-          resolve(base64);
-        };
-        reader.onerror = error => reject(error);
-      });
+      const reader = new FileReader();
+      reader.readAsDataURL(recordingBlob);
+      reader.onloadend = async () => {
+        try {
+          const base64data = reader.result.split(',')[1];
+          
+          const response = await fetch(API_ENDPOINTS.UPLOAD, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': API_KEY
+            },
+            body: JSON.stringify({
+              id: patientID,
+              fileName: `${patientID}.mp4`,
+              file: base64data,
+              contentType: 'video/mp4'
+            })
+          });
 
-      console.log('Converted to base64, sending to upload endpoint');
-      
-      const response = await fetch('https://fu9nj81we9.execute-api.eu-west-1.amazonaws.com/testing/upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': process.env.REACT_APP_API_KEY || ''
-        },
-        body: JSON.stringify({
-          id: patientID,
-          file: base64File,
-          fileName: `${patientID}.mp4`,
-          contentType: 'video/mp4'
-        })
-      });
+          if (!response.ok) {
+            throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
+          }
 
-      console.log('Upload response status:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Upload error response:', errorText);
-        throw new Error(`Failed to upload: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('Upload completed successfully:', result);
-      
-      setRecordingExistsOnServer(true);
-      setStatus({ type: 'success', message: 'ההקלטה הועלתה בהצלחה' });
-      
-      // Call both callbacks
-      if (onRecordingComplete) {
-        onRecordingComplete(mediaUrl);
-      }
-      if (onUploadComplete) {
-        onUploadComplete(patientID);  // This will trigger the refresh
-      }
-    } catch (err) {
-      console.error('Upload error:', err);
-      setError('שגיאה בהעלאת ההקלטה');
-      setStatus({ type: 'error', message: 'שגיאה בהעלאת ההקלטה' });
-    } finally {
+          setStatus({ 
+            type: 'success', 
+            message: 'ההקלטה הועלתה בהצלחה' 
+          });
+          
+          if (onUploadComplete) {
+            onUploadComplete(true);
+          }
+          
+          setRecordingExistsOnServer(true);
+        } catch (error) {
+          console.error('Error in upload process:', error);
+          setError(`שגיאה בהעלאת ההקלטה: ${error.message}`);
+        } finally {
+          setIsTranscribing(false);
+        }
+      };
+    } catch (error) {
+      console.error('Error preparing upload:', error);
+      setError(`שגיאה בהכנת ההקלטה להעלאה: ${error.message}`);
       setIsTranscribing(false);
     }
   };

@@ -351,6 +351,11 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
   };
 
   const handleTranscriptDelete = async (fileName) => {
+    if (!patientID) {
+      setError('Missing patient ID');
+      return;
+    }
+    
     setIsTranscribing(true);
     try {
       // Extract just the base filename without any path or id prefix
@@ -359,7 +364,12 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
         .replace('output/transcribe/', '')  // Remove any path prefix
         .trim();
       
-      const response = await fetch(API_ENDPOINTS.DELETE, {
+      const deleteUrl = buildUrl(API_ENDPOINTS.DELETE, {
+        patientId: patientID,
+        fileName: baseFileName + '.json'
+      });
+      
+      const response = await fetch(deleteUrl, {
         method: 'DELETE',
         headers: {
           'x-api-key': API_KEY
@@ -1001,9 +1011,19 @@ export default function Step1({ patientID, setPatientID, onValidationChange, onE
 
   // Add handler for confirmed deletion
   const handleConfirmedDelete = async () => {
+    if (!fileToDelete || !patientID) {
+      setError('Missing file information or patient ID');
+      return;
+    }
+    
     setIsDeletingFile(true);
     try {
-      const response = await fetch(API_ENDPOINTS.DELETE, {
+      const deleteUrl = buildUrl(API_ENDPOINTS.DELETE, {
+        patientId: patientID,
+        fileName: fileToDelete.file.name
+      });
+      
+      const response = await fetch(deleteUrl, {
         method: 'DELETE',
         headers: {
           'x-api-key': API_KEY
